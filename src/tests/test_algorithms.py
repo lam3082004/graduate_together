@@ -1,12 +1,12 @@
 """
 test_algorithms.py — pytest suite for PERBuffer, IAMADDPG, baselines, soft_update.
+Numpy-only, no torch.
 """
 import sys
 import os
 import copy
 import pytest
 import numpy as np
-import torch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -14,7 +14,6 @@ from config import Config
 from environment.network_env import AntiJammingEnv
 from algorithms.per_buffer import PERBuffer
 from algorithms.ia_maddpg import IAMADDPG
-from algorithms.ia_maddpg_update import soft_update
 from algorithms.baselines import (
     DirectTransmission,
     GreedyStrategy,
@@ -223,36 +222,27 @@ def test_soft_update(cfg):
     source = SUActor(obs_dim=cfg.su_obs_dim, hidden=[32, 16])
     target = copy.deepcopy(source)
 
-    # Perturb source parameters strongly
-    with torch.no_grad():
-        for p in source.parameters():
-            p.add_(torch.randn_like(p) * 5.0)
+    # Perturb source parameters strongly (numpy in-place)
+    for layer in source.backbone.layers:
+        layer.W += np.random.randn(*layer.W.shape) * 5.0
+        layer.b += np.random.randn(*layer.b.shape) * 5.0
 
     tau = 0.1
-    soft_update(source, target, tau)
+    W_before = target.backbone.layers[0].W.copy()
+    target.soft_update_from(source, tau)
 
-    # After soft update: target should have moved toward source but not all the way
-    param_diffs = []
-    for sp, tp in zip(source.parameters(), target.parameters()):
-        param_diffs.append(float((sp - tp).abs().mean()))
+    W_after = target.backbone.layers[0].W
+    # target should have moved but not fully reached source
+    assert not np.allclose(W_before, W_after, atol=1e-8), \
+        "Target params should change after soft update"
+    assert not np.allclose(W_after, source.backbone.layers[0].W, atol=1e-8), \
+        "Target should not fully equal source after one soft update (tau<1)"
 
-    # target should NOT equal source (tau < 1)
-    assert any(d > 1e-6 for d in param_diffs), \
-        "After soft update, target should not fully equal source"
-
-    # But target should have moved; check against a fresh copy of the original
-    orig_target = copy.deepcopy(target)
-    for _ in range(50):
-        soft_update(source, target, tau)
-
-    # After many updates, target should be closer to source
-    final_diffs = [
-        float((sp - tp).abs().mean())
-        for sp, tp in zip(source.parameters(), target.parameters())
-    ]
-    orig_diffs = [
-        float((sp - tp).abs().mean())
-        for sp, tp in zip(source.parameters(), orig_target.parameters())
-    ]
-    assert sum(final_diffs) < sum(orig_diffs), \
-        "Target params should converge toward source after repeated soft updates"
+    # After many updates target should converge toward source
+    for _ in range(100):
+        target.soft_update_from(source, tau)
+    W_final = target.backbone.layers[0].W
+    diff_final = np.abs(W_final - source.backbone.layers[0].W).mean()
+    diff_initial = np.abs(W_before - source.backbone.layers[0].W).mean()
+    assert diff_final < diff_initial, \
+        "Target should converge toward source after repeated soft updates"

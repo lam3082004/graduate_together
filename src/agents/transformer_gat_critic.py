@@ -1,189 +1,153 @@
 """
-transformer_gat_critic.py — Centralised Critic combining Transformer + GAT.
+transformer_gat_critic.py — Centralized Critic with attention-weighted agent
+feature aggregation and channel-topology features (numpy-only, torch-free).
 
-Architecture (IA-MADDPG / Double-Q):
-  1. Project each agent obs → d_model via type-specific linear layers
-  2. Transformer encoder over the N+K token sequence
-  3. Multi-head GAT over UAV→SU topology graph (channel_gains as edge weights)
-  4. Mean-pool Transformer output + GAT output
-  5. Concat with flat action vector → twin MLP heads → Q1, Q2
+Architecture (Double-Q):
+  1. Project each SU obs+action  → d-dim embedding (su_proj MLP)
+  2. Project each UAV obs+action → d-dim embedding (uav_proj MLP)
+  3. Stack all N+K embeddings → dot-product self-attention → context vectors
+  4. For each UAV embedding: add channel-gain-weighted SU embedding (GAT-like)
+  5. Mean-pool → MLP [flat_dim → 512 → 256 → 128 → 64] → twin Q heads (Q1, Q2)
 """
 
-import math
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import numpy as np
+from nn.layers import MLP, softmax_np, relu
 
 
-# ─── GAT primitives ──────────────────────────────────────────────────────────
+# ── Attention helpers ─────────────────────────────────────────────────────────
 
-class GATLayer(nn.Module):
-    """Single-head Graph Attention Layer (Veličković et al., 2018)."""
-
-    def __init__(self, in_dim: int, out_dim: int) -> None:
-        super().__init__()
-        self.W   = nn.Linear(in_dim, out_dim, bias=False)
-        self.a_src = nn.Linear(out_dim, 1, bias=False)
-        self.a_dst = nn.Linear(out_dim, 1, bias=False)
-        self.leaky = nn.LeakyReLU(0.2)
-
-    def forward(self, h: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            h:   (B, V, in_dim)  node features
-            adj: (B, V, V)       adjacency bias (0 = connected, -inf = masked)
-        Returns:
-            (B, V, out_dim)
-        """
-        Wh   = self.W(h)                                   # (B, V, out_dim)
-        e    = self.a_src(Wh) + self.a_dst(Wh).transpose(-1, -2)  # (B, V, V)
-        e    = self.leaky(e) + adj
-        attn = F.softmax(e, dim=-1)                        # (B, V, V)
-        return F.elu(torch.bmm(attn, Wh))                  # (B, V, out_dim)
-
-
-class MultiHeadGAT(nn.Module):
-    """Multi-head GAT with ELU activation and output projection."""
-
-    def __init__(self, in_dim: int, hidden: int, heads: int = 4) -> None:
-        super().__init__()
-        self.heads = nn.ModuleList([GATLayer(in_dim, hidden) for _ in range(heads)])
-        self.proj  = nn.Linear(hidden * heads, hidden)
-        self.norm  = nn.LayerNorm(hidden)
-
-    def forward(self, h: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            h:   (B, V, in_dim)
-            adj: (B, V, V)
-        Returns:
-            (B, V, hidden)
-        """
-        out = torch.cat([head(h, adj) for head in self.heads], dim=-1)
-        return self.norm(self.proj(out))
-
-
-# ─── Centralized Critic ───────────────────────────────────────────────────────
-
-def _build_mlp(in_dim: int, hidden: list[int], out_dim: int) -> nn.Sequential:
-    layers: list[nn.Module] = []
-    prev = in_dim
-    for h in hidden:
-        layers.extend([nn.Linear(prev, h), nn.LayerNorm(h), nn.ReLU()])
-        prev = h
-    layers.append(nn.Linear(prev, out_dim))
-    return nn.Sequential(*layers)
-
-
-class TransformerGATCritic(nn.Module):
+def _dot_attention(emb: np.ndarray) -> np.ndarray:
     """
-    Centralised Critic (Double-Q) combining Transformer + Multi-head GAT.
+    Scaled dot-product self-attention.
+    emb : (B, M, d)  → context : (B, M, d)
+    """
+    B, M, d = emb.shape
+    scale = np.sqrt(max(d, 1))
+    # scores: (B, M, M)
+    scores = np.einsum('bmd,bnd->bmn', emb, emb) / scale
+    attn = softmax_np(scores)           # (B, M, M)
+    return np.einsum('bmn,bnd->bmd', attn, emb)  # (B, M, d)
 
-    Node indexing: UAVs first [0..K-1], then SUs [K..K+N-1].
+
+def _channel_weighted_su(uav_emb: np.ndarray, su_emb: np.ndarray,
+                          channel_gains: np.ndarray) -> np.ndarray:
+    """
+    For each UAV k: compute sum_i (g_ki / sum_j g_kj) * su_emb_i.
+    uav_emb     : (B, K, d)
+    su_emb      : (B, N, d)
+    channel_gains: (B, K, N)
+    Returns extra_uav: (B, K, d)
+    """
+    # Normalize gains row-wise: (B, K, N)
+    g_norm = channel_gains / (channel_gains.sum(axis=-1, keepdims=True) + 1e-12)
+    # Weighted sum of SU embeddings: (B, K, d)
+    return np.einsum('bkn,bnd->bkd', g_norm, su_emb)
+
+
+# ── Centralized Critic ────────────────────────────────────────────────────────
+
+class CentralizedCritic:
+    """
+    Double-Q centralized critic with attention + channel-topology features.
+
+    All inputs are numpy arrays; no torch dependency.
     """
 
-    def __init__(
-        self,
-        N: int = 5, K: int = 2,
-        su_obs_dim: int = 4, uav_obs_dim: int = 15,
-        su_action_dim: int = 4, uav_action_dim: int = 3,
-        d_model: int = 128, nhead: int = 4, nlayers: int = 2,
-        gat_hidden: int = 64, gat_heads: int = 4,
-        mlp_hidden: list[int] | None = None,
-    ) -> None:
-        super().__init__()
+    def __init__(self, N: int = 5, K: int = 2,
+                 su_obs_dim: int = 4, uav_obs_dim: int = 15,
+                 su_action_dim: int = 4, uav_action_dim: int = 3,
+                 d: int = 128,
+                 mlp_hidden: list | None = None) -> None:
         if mlp_hidden is None:
             mlp_hidden = [512, 256, 128, 64]
+        self.N, self.K, self.d = N, K, d
 
-        self.N = N
-        self.K = K
-        num_nodes     = N + K
-        total_act_dim = N * su_action_dim + K * uav_action_dim
+        su_in  = su_obs_dim  + su_action_dim
+        uav_in = uav_obs_dim + uav_action_dim
 
-        # Per-type input projections (obs dims differ)
-        self.uav_proj = nn.Linear(uav_obs_dim, d_model)
-        self.su_proj  = nn.Linear(su_obs_dim,  d_model)
+        # Projection MLPs (one per agent type)
+        self.su_proj  = MLP([su_in, d],  hidden_act='relu', out_act=None)
+        self.uav_proj = MLP([uav_in, d], hidden_act='relu', out_act=None)
 
-        # Learnable positional encoding  (1, N+K, d_model)
-        self.pos_enc = nn.Parameter(torch.zeros(1, num_nodes, d_model))
-        nn.init.trunc_normal_(self.pos_enc, std=0.02)
+        # Flat dimension after mean-pool of (N+K) context vectors + (K) channel extras
+        flat_dim = (N + K) * d + K * d   # context_mean:(N+K)*d + uav_chan_extra:K*d
+        # Flatten to vector before MLP
+        flat_in = (N + K + K) * d        # (N+K context + K channel) * d then flatten
 
-        # Transformer encoder
-        enc_layer     = nn.TransformerEncoderLayer(
-            d_model=d_model, nhead=nhead, dim_feedforward=d_model * 4,
-            dropout=0.0, batch_first=True, norm_first=True,
-        )
-        self.transformer = nn.TransformerEncoder(enc_layer, num_layers=nlayers)
+        # Twin Q heads
+        self.q1_mlp = MLP([flat_in] + mlp_hidden + [1], hidden_act='relu', out_act=None)
+        self.q2_mlp = MLP([flat_in] + mlp_hidden + [1], hidden_act='relu', out_act=None)
 
-        # Multi-head GAT
-        self.gat = MultiHeadGAT(d_model, gat_hidden, heads=gat_heads)
+        # Cache for backward
+        self._flat: np.ndarray | None = None
 
-        # MLP input: Transformer pool + GAT pool + actions
-        feat_dim = d_model + gat_hidden + total_act_dim
+    def _embed(self, su_obs: np.ndarray, uav_obs: np.ndarray,
+               su_actions: np.ndarray, uav_actions: np.ndarray,
+               channel_gains: np.ndarray):
+        """Build flat feature vector. Returns (B, flat_in) and caches it."""
+        B = su_obs.shape[0]
+        N, K, d = self.N, self.K, self.d
 
-        # Twin Q heads (Double-Q / TD3)
-        self.q1 = _build_mlp(feat_dim, mlp_hidden, 1)
-        self.q2 = _build_mlp(feat_dim, mlp_hidden, 1)
+        # 1. Project observations+actions to embeddings
+        su_in  = np.concatenate([su_obs,  su_actions],  axis=-1)   # (B, N, su_in)
+        uav_in = np.concatenate([uav_obs, uav_actions], axis=-1)   # (B, K, uav_in)
 
-    # ── adjacency builder ─────────────────────────────────────────────────────
+        su_emb  = np.stack([self.su_proj.forward(su_in[:, i]) for i in range(N)], axis=1)
+        uav_emb = np.stack([self.uav_proj.forward(uav_in[:, k]) for k in range(K)], axis=1)
 
-    def _build_adj(self, channel_gains: torch.Tensor) -> torch.Tensor:
+        # 2. Self-attention over all N+K embeddings
+        all_emb = np.concatenate([uav_emb, su_emb], axis=1)  # (B, K+N, d)
+        context = _dot_attention(all_emb)                     # (B, K+N, d)
+
+        # 3. Channel-gain weighted SU embeddings for UAV nodes
+        chan_extra = _channel_weighted_su(uav_emb, su_emb, channel_gains)  # (B, K, d)
+
+        # 4. Flatten: [context (K+N) * d, chan_extra K * d]
+        flat = np.concatenate([
+            context.reshape(B, -1),      # (B, (K+N)*d)
+            chan_extra.reshape(B, -1),   # (B, K*d)
+        ], axis=-1)                      # (B, flat_in)
+        self._flat = flat
+        return flat
+
+    def forward(self, su_obs: np.ndarray, uav_obs: np.ndarray,
+                su_actions: np.ndarray, uav_actions: np.ndarray,
+                channel_gains: np.ndarray):
         """
-        Build (B, K+N, K+N) log-space adjacency bias.
-        - Self-loops: 0
-        - UAV k → SU i edges: log(channel_gains[:, k, i] + eps)
-        - All other off-diagonal: -inf (masked)
+        Returns q1 (B,), q2 (B,).
+        All inputs: numpy float32 arrays.
         """
-        B = channel_gains.size(0)
-        V = self.K + self.N
-        adj = torch.full((B, V, V), float("-inf"), device=channel_gains.device)
+        flat = self._embed(su_obs, uav_obs, su_actions, uav_actions, channel_gains)
+        q1 = self.q1_mlp.forward(flat).squeeze(-1)  # (B,)
+        q2 = self.q2_mlp.forward(flat).squeeze(-1)  # (B,)
+        return q1, q2
 
-        # Self-loops
-        idx = torch.arange(V, device=channel_gains.device)
-        adj[:, idx, idx] = 0.0
+    def backward_critic(self, dq: np.ndarray, head: int = 1) -> None:
+        """Backprop MSE gradient through selected Q head."""
+        dq_col = dq.reshape(-1, 1)
+        if head == 1:
+            self.q1_mlp.backward(dq_col)
+        else:
+            self.q2_mlp.backward(dq_col)
 
-        # UAV→SU directed edges (log-scale weight so large gains ≠ collapse)
-        eps = 1e-9
-        for k in range(self.K):
-            for i in range(self.N):
-                adj[:, k, self.K + i] = torch.log(channel_gains[:, k, i] + eps)
+    def params_and_grads(self) -> list:
+        return (self.su_proj.params_and_grads()
+                + self.uav_proj.params_and_grads()
+                + self.q1_mlp.params_and_grads()
+                + self.q2_mlp.params_and_grads())
 
-        return adj
+    def copy_from(self, other: 'CentralizedCritic') -> None:
+        self.su_proj.copy_weights_from(other.su_proj)
+        self.uav_proj.copy_weights_from(other.uav_proj)
+        self.q1_mlp.copy_weights_from(other.q1_mlp)
+        self.q2_mlp.copy_weights_from(other.q2_mlp)
 
-    # ── forward ───────────────────────────────────────────────────────────────
+    def soft_update_from(self, other: 'CentralizedCritic', tau: float) -> None:
+        self.su_proj.soft_update_from(other.su_proj, tau)
+        self.uav_proj.soft_update_from(other.uav_proj, tau)
+        self.q1_mlp.soft_update_from(other.q1_mlp, tau)
+        self.q2_mlp.soft_update_from(other.q2_mlp, tau)
 
-    def forward(
-        self,
-        su_obs_list:   list[torch.Tensor],   # N × (B, su_obs_dim)
-        uav_obs_list:  list[torch.Tensor],   # K × (B, uav_obs_dim)
-        su_actions:    list[torch.Tensor],   # N × (B, su_action_dim)
-        uav_actions:   list[torch.Tensor],   # K × (B, uav_action_dim)
-        channel_gains: torch.Tensor,         # (B, K, N)
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Returns:
-            q1, q2: (B, 1)
-        """
-        # 1. Project observations → d_model tokens; UAVs first, then SUs
-        uav_tokens = [self.uav_proj(o) for o in uav_obs_list]   # K × (B, d_model)
-        su_tokens  = [self.su_proj(o)  for o in su_obs_list]    # N × (B, d_model)
-        tokens = torch.stack(uav_tokens + su_tokens, dim=1)      # (B, K+N, d_model)
-        tokens = tokens + self.pos_enc
 
-        # 2. Transformer encoder
-        tf_out = self.transformer(tokens)                         # (B, K+N, d_model)
-
-        # 3. GAT over UAV→SU topology
-        adj     = self._build_adj(channel_gains)                  # (B, K+N, K+N)
-        gat_out = self.gat(tokens, adj)                           # (B, K+N, gat_hidden)
-
-        # 4. Mean-pool both streams
-        tf_pool  = tf_out.mean(dim=1)    # (B, d_model)
-        gat_pool = gat_out.mean(dim=1)   # (B, gat_hidden)
-
-        # 5. Flatten all actions
-        all_acts = torch.cat(uav_actions + su_actions, dim=-1)    # (B, total_act_dim)
-
-        # 6. Joint feature vector → twin Q heads
-        feat = torch.cat([tf_pool, gat_pool, all_acts], dim=-1)
-        return self.q1(feat), self.q2(feat)
+# Alias to preserve any legacy import as TransformerGATCritic
+TransformerGATCritic = CentralizedCritic

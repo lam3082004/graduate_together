@@ -1,5 +1,6 @@
 """
-Main training script.
+train.py — Main training script (numpy-only, torch-free).
+
 Usage:
     python train.py                    # train proposed method
     python train.py --method maddpg    # train a specific baseline
@@ -13,9 +14,7 @@ import time
 import json
 
 import numpy as np
-import torch
 
-# Ensure src/ root is importable when running as `python src/train.py`
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import Config
@@ -34,9 +33,6 @@ from algorithms.baselines import (
 
 def set_seed(seed: int) -> None:
     np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
 
 # ── Per-method training ────────────────────────────────────────────────────────
@@ -57,6 +53,7 @@ def train_one_method(method_name: str, cfg: Config, save_dir: str):
 
     # ── Build agent/strategy ──────────────────────────────────────────────────
     learnable = method_name in ("ia_maddpg_uav", "maddpg", "ia_maddpg_rbs")
+    agent = strategy = None
 
     if method_name == "ia_maddpg_uav":
         agent = IAMADDPG(cfg, env)
@@ -79,10 +76,9 @@ def train_one_method(method_name: str, cfg: Config, save_dir: str):
         agent.warmup(env, cfg.warmup_steps)
         print(f"  [warmup] done — buffer size: {len(agent.buffer)}")
 
-    reward_history: list[float] = []
-    tsr_history: list[float] = []
-    mode_history: list[list] = []
-
+    reward_history: list = []
+    tsr_history: list = []
+    mode_history: list = []
     global_step = 0
     t0 = time.time()
 
@@ -106,126 +102,95 @@ def train_one_method(method_name: str, cfg: Config, save_dir: str):
             # ── Environment step ──────────────────────────────────────────────
             next_su_obs, next_uav_obs, rewards, done, info = env.step(su_acts, uav_acts)
 
-            # ── Store transition (learnable agents only) ──────────────────────
+            # ── Store + update (learnable agents) ─────────────────────────────
             if learnable:
-                transition = (
+                agent.store_transition((
                     su_obs, uav_obs,
                     su_acts, uav_acts,
                     rewards["su"],
                     next_su_obs, next_uav_obs,
                     float(done),
                     env.channels,
-                )
-                agent.store_transition(transition)
-
-                # ── Update ────────────────────────────────────────────────────
-                losses = agent.update(global_step)
+                ))
+                agent.update(global_step)
 
             # ── Accumulate metrics ────────────────────────────────────────────
-            mean_su_reward = float(np.mean(rewards["su"]))
-            ep_reward += mean_su_reward
-
+            ep_reward += float(np.mean(rewards["su"]))
             sinr_vals = info["sinr"]
             ep_tsr += float(np.mean(sinr_vals >= cfg.gamma_th))
-
-            modes = info["modes"]
-            for m in modes:
+            for m in info["modes"]:
                 mode_counts[int(m)] += 1
 
             su_obs, uav_obs = next_su_obs, next_uav_obs
             global_step += 1
-
             if done:
                 break
 
         ep_mean_reward = ep_reward / cfg.steps_per_episode
-        ep_mean_tsr = ep_tsr / cfg.steps_per_episode
-
+        ep_mean_tsr    = ep_tsr    / cfg.steps_per_episode
         reward_history.append(ep_mean_reward)
         tsr_history.append(ep_mean_tsr)
         mode_history.append(mode_counts)
 
-        # ── Logging every 10 episodes ─────────────────────────────────────────
         if (ep + 1) % 10 == 0:
             elapsed = time.time() - t0
             mode_total = max(sum(mode_counts), 1)
             print(
                 f"  [{method_name}] ep {ep+1:4d}/{cfg.episodes} | "
-                f"reward={ep_mean_reward:+.4f} | "
-                f"tsr={ep_mean_tsr:.3f} | "
+                f"reward={ep_mean_reward:+.4f} | tsr={ep_mean_tsr:.3f} | "
                 f"modes=({mode_counts[0]/mode_total:.2f}/"
                 f"{mode_counts[1]/mode_total:.2f}/"
-                f"{mode_counts[2]/mode_total:.2f}) | "
-                f"t={elapsed:.0f}s"
+                f"{mode_counts[2]/mode_total:.2f}) | t={elapsed:.0f}s"
             )
 
-        # ── Checkpoint every 100 episodes ─────────────────────────────────────
         if learnable and (ep + 1) % 100 == 0:
             ckpt_dir = os.path.join(method_dir, f"ep{ep+1}")
             agent.save(ckpt_dir)
             print(f"  [ckpt] saved → {ckpt_dir}")
 
-    # Save final checkpoint and history
     if learnable:
         agent.save(method_dir)
 
-    history = {
-        "reward": reward_history,
-        "tsr": tsr_history,
-        "modes": mode_history,
-    }
+    history = {"reward": reward_history, "tsr": tsr_history, "modes": mode_history}
     with open(os.path.join(method_dir, "history.json"), "w") as f:
         json.dump(history, f, indent=2)
-
     print(f"  [{method_name}] training complete — history saved.")
     return reward_history, tsr_history, mode_history
 
 
-# ── Main entry point ───────────────────────────────────────────────────────────
+# ── Main ───────────────────────────────────────────────────────────────────────
 
 ALL_METHODS = ["ia_maddpg_uav", "maddpg", "ia_maddpg_rbs", "greedy", "dt", "fh"]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="IA-MADDPG training script")
-    parser.add_argument(
-        "--method", default="ia_maddpg_uav",
-        choices=ALL_METHODS + ["all"],
-        help="Method to train. Use 'all' to train every method sequentially.",
-    )
-    parser.add_argument("--episodes", type=int, default=None,
-                        help="Override cfg.episodes")
+    parser.add_argument("--method", default="ia_maddpg_uav",
+                        choices=ALL_METHODS + ["all"])
+    parser.add_argument("--episodes", type=int, default=None)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--save_dir", default="results/")
-    parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     args = parser.parse_args()
 
     set_seed(args.seed)
-
     cfg = Config(seed=args.seed)
     if args.episodes is not None:
         object.__setattr__(cfg, "episodes", args.episodes)
-
     os.makedirs(args.save_dir, exist_ok=True)
 
     methods = ALL_METHODS if args.method == "all" else [args.method]
-
     all_rewards: dict = {}
 
     for method in methods:
-        print(f"\n{'='*60}")
-        print(f" Training: {method}  (episodes={cfg.episodes}, seed={cfg.seed})")
-        print(f"{'='*60}")
+        print(f"\n{'='*60}\n Training: {method}  (episodes={cfg.episodes})\n{'='*60}")
         rewards, tsrs, modes = train_one_method(method, cfg, args.save_dir)
         all_rewards[method] = rewards
 
-    # Save summary JSON
     summary_path = os.path.join(args.save_dir, "summary.json")
     with open(summary_path, "w") as f:
         json.dump({m: v[-1] for m, v in all_rewards.items()}, f, indent=2)
     print(f"\nFinal rewards summary saved → {summary_path}")
 
-    # Plot training curves if multiple methods were trained
     if len(all_rewards) > 1:
         import matplotlib
         matplotlib.use("Agg")

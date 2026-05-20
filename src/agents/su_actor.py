@@ -1,80 +1,99 @@
 """
-su_actor.py — SU Agent Actor Network for IA-MADDPG.
+su_actor.py — SU Agent Actor using numpy MLP (torch-free).
 
 Maps local SU observation → (alpha, mode_logits).
-- alpha:       continuous reflection coefficient in [0,1] via sigmoid
-- mode_logits: 3-dim raw logits for Gumbel-Softmax (modes 0=D2D, 1=RBS, 2=UAV)
+  alpha      : continuous reflection coefficient in [0,1] via sigmoid
+  mode_logits: 3-dim raw logits; use softmax_np for probabilities
 """
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import numpy as np
+from nn.layers import MLP, sigmoid, softmax_np
 
 
-def _build_mlp(in_dim: int, hidden: list[int]) -> nn.Sequential:
-    """Helper: build MLP with LayerNorm + ReLU activations."""
-    layers: list[nn.Module] = []
-    prev = in_dim
-    for h in hidden:
-        layers.extend([nn.Linear(prev, h), nn.LayerNorm(h), nn.ReLU()])
-        prev = h
-    return nn.Sequential(*layers)
-
-
-class SUActor(nn.Module):
+class SUActor:
     """
-    SU Agent Actor: maps local observation → (alpha, mode_logits).
+    SU Agent Actor: obs (B, su_obs_dim) → alpha (B,1), mode_logits (B,3).
 
-    Input  obs: (B, obs_dim) — [gamma_prev, E_norm, mode_prev, P_J_hat]
-    Output alpha:       (B, 1)  — sigmoid-activated reflection coefficient
-           mode_logits: (B, 3)  — raw logits for Gumbel-Softmax
+    Architecture:
+        backbone  : MLP [obs_dim → 256 → 256 → 128] with ReLU
+        alpha_head: MLP [128 → 1] with sigmoid output (∈ [0,1])
+        mode_head : MLP [128 → 3] linear (raw logits)
     """
 
-    def __init__(self, obs_dim: int = 4, hidden: list[int] | None = None) -> None:
-        super().__init__()
+    def __init__(self, obs_dim: int = 4,
+                 hidden: list | None = None) -> None:
         if hidden is None:
             hidden = [256, 256, 128]
+        dims_backbone = [obs_dim] + list(hidden)
+        self.backbone  = MLP(dims_backbone, hidden_act='relu', out_act=None)
+        self.alpha_head = MLP([hidden[-1], 1], hidden_act='relu', out_act='sigmoid')
+        self.mode_head  = MLP([hidden[-1], 3], hidden_act='relu', out_act=None)
+        self._feat: np.ndarray | None = None
 
-        self.backbone = _build_mlp(obs_dim, hidden)
-        out_dim = hidden[-1]
+    # ── Forward ───────────────────────────────────────────────────────────────
 
-        # Two heads share the backbone
-        self.alpha_head = nn.Linear(out_dim, 1)        # → sigmoid → [0,1]
-        self.mode_head  = nn.Linear(out_dim, 3)        # raw logits
-
-    def forward(self, obs: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, obs: np.ndarray):
         """
         Args:
-            obs: (B, obs_dim)
+            obs : (B, obs_dim)
         Returns:
-            alpha:       (B, 1)  in [0, 1]
-            mode_logits: (B, 3)  unnormalised logits
+            alpha       : (B, 1) in [0, 1]
+            mode_logits : (B, 3) raw logits
         """
-        feat = self.backbone(obs)
-        alpha       = torch.sigmoid(self.alpha_head(feat))
-        mode_logits = self.mode_head(feat)
+        obs = np.atleast_2d(obs)
+        feat = self.backbone.forward(obs)
+        self._feat = feat
+        alpha = self.alpha_head.forward(feat)
+        mode_logits = self.mode_head.forward(feat)
         return alpha, mode_logits
 
-    def get_action(
-        self,
-        obs: torch.Tensor,
-        tau: float = 1.0,
-        hard: bool = False,
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def get_action(self, obs: np.ndarray, tau: float = 1.0,
+                   explore: bool = False):
         """
-        Sample action using Gumbel-Softmax for differentiable discrete selection.
-
-        Args:
-            obs:  (B, obs_dim)
-            tau:  Gumbel-Softmax temperature (lower → more discrete)
-            hard: if True, straight-through estimator (one-hot forward, soft backward)
+        Sample action; optionally add Gumbel noise for exploration.
 
         Returns:
-            alpha:      (B, 1)  — reflection coefficient
-            mode_probs: (B, 3)  — soft / hard mode probabilities
-            mode_idx:   (B,)    — argmax integer mode index
+            alpha      : (B,)   reflection coefficient
+            mode_probs : (B, 3) softmax probabilities
+            mode_idx   : (B,)   argmax integer mode index
         """
-        alpha, mode_logits = self.forward(obs)
-        mode_probs = F.gumbel_softmax(mode_logits, tau=tau, hard=hard, dim=-1)
-        mode_idx   = mode_probs.argmax(dim=-1)
+        obs = np.atleast_2d(obs)
+        alpha_raw, mode_logits = self.forward(obs)
+        alpha = alpha_raw.squeeze(-1)  # (B,)
+        if explore:
+            gumbel = -np.log(
+                -np.log(np.random.uniform(1e-20, 1.0, mode_logits.shape) + 1e-20) + 1e-20
+            )
+            mode_logits = (mode_logits + gumbel) / max(tau, 1e-6)
+        mode_probs = softmax_np(mode_logits)
+        mode_idx = mode_probs.argmax(axis=-1)
         return alpha, mode_probs, mode_idx
+
+    # ── Backward helpers ──────────────────────────────────────────────────────
+
+    def backward_alpha(self, d_alpha: np.ndarray) -> None:
+        """Backprop through alpha head → backbone."""
+        d_feat = self.alpha_head.backward(d_alpha)
+        self.backbone.backward(d_feat)
+
+    def backward_mode(self, d_mode_logits: np.ndarray) -> None:
+        """Backprop through mode head → backbone."""
+        d_feat = self.mode_head.backward(d_mode_logits)
+        self.backbone.backward(d_feat)
+
+    # ── Param access ──────────────────────────────────────────────────────────
+
+    def params_and_grads(self) -> list:
+        return (self.backbone.params_and_grads()
+                + self.alpha_head.params_and_grads()
+                + self.mode_head.params_and_grads())
+
+    def copy_from(self, other: 'SUActor') -> None:
+        self.backbone.copy_weights_from(other.backbone)
+        self.alpha_head.copy_weights_from(other.alpha_head)
+        self.mode_head.copy_weights_from(other.mode_head)
+
+    def soft_update_from(self, other: 'SUActor', tau: float) -> None:
+        self.backbone.soft_update_from(other.backbone, tau)
+        self.alpha_head.soft_update_from(other.alpha_head, tau)
+        self.mode_head.soft_update_from(other.mode_head, tau)
