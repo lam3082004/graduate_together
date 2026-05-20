@@ -170,72 +170,214 @@ Trường ĐH Công nghệ --- ĐHQGHN
 \pagenumbering{roman}
 \setcounter{page}{1}
 
-%--- Tóm tắt (Vietnamese Abstract) ---
+% ============================================================
+%  TÓM TẮT (Vietnamese Abstract)
+% ============================================================
 \chapter*{Tóm tắt}
 \addcontentsline{toc}{chapter}{Tóm tắt}
-% TODO: viết tóm tắt tiếng Việt (~250 từ)
 
-%--- Abstract (English) ---
+\noindent
+\textbf{Từ khóa:} Truyền thông Backscatter Môi trường, chống gây nhiễu, mạng D2D, UAV relay,
+học tăng cường đa tác tử, MADDPG, Imitation Learning, Graph Attention Network, Transformer.
+
+\bigskip
+
+Trong bối cảnh mạng truyền thông thế hệ mới, các thiết bị IoT và người dùng di động mặt đất
+ngày càng đối mặt với nguy cơ bị tấn công gây nhiễu vô tuyến (jamming) có chủ đích, gây suy
+giảm nghiêm trọng chất lượng liên lạc. Đề tài này nghiên cứu bài toán chống gây nhiễu cho mạng
+truyền thông Device-to-Device (D2D) theo hướng tiếp cận mới: thay vì né tránh tín hiệu nhiễu,
+hệ thống \emph{khai thác} năng lượng RF từ tín hiệu gây nhiễu công suất cao làm nguồn kích
+hoạt cho truyền thông Ambient Backscatter (AmBC), đồng thời triển khai các UAV làm relay
+động trong không gian ba chiều nhằm hỗ trợ đường truyền D2D.
+
+Hệ thống gồm $N = 5$ cặp thiết bị nguồn--đích (SU--DU) mặt đất, $K = 2$ UAV relay di động,
+một trạm relay cố định (RBS) và một thiết bị gây nhiễu mặt đất. Mỗi nguồn SU có thể chọn
+một trong ba chế độ truyền: truyền thẳng D2D, relay qua RBS, hoặc relay qua UAV, đồng thời
+điều chỉnh hệ số phản xạ $\alpha_i$. Các UAV tối ưu vị trí 3D theo thời gian nhằm tối đa hóa
+SINR cho các SU trong phạm vi phục vụ.
+
+Bài toán được mô hình hóa là Dec-POMDP đa tác tử gồm $N$ SU agent và $K$ UAV agent, và được
+giải quyết bằng framework \textbf{IA-MADDPG mở rộng} (Imitation-Augmented Multi-Agent DDPG).
+Điểm đóng góp chính của đề tài là thay thế bộ critic MLP truyền thống bằng
+\textbf{Transformer-GAT Centralized Critic}: bộ mã hóa Transformer xử lý quan sát của toàn
+bộ tác tử dưới điều kiện thông tin không đầy đủ, trong khi Graph Attention Network (GAT) khai
+thác cấu trúc đồ thị kết nối UAV--SU để tổng hợp thông tin topo mạng. Expert policy heuristic
+được dùng để khởi động bộ nhớ replay (warm-up) và cung cấp tín hiệu bắt chước (behavior
+cloning) trong giai đoạn đầu huấn luyện, nhờ đó tránh được bất ổn cold-start đặc trưng của
+MARL.
+
+Kết quả mô phỏng trên Python với 600 episode cho thấy phương pháp đề xuất vượt trội so với
+năm baseline về tổng phần thưởng mạng, tỷ lệ truyền thành công (TSR), thông lượng trung
+bình và hiệu quả năng lượng. Nghiên cứu ablation xác nhận đóng góp độc lập của từng thành
+phần: UAV relay, imitation learning, Prioritized Experience Replay, và Transformer-GAT critic.
+
+% ============================================================
+%  ABSTRACT (English)
+% ============================================================
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-% TODO: English abstract (~250 words)
 
-%--- Lời cảm ơn ---
+\noindent
+\textbf{Keywords:} Ambient Backscatter Communication, anti-jamming, D2D networks, UAV relay,
+multi-agent deep reinforcement learning, MADDPG, imitation learning, Graph Attention Network,
+Transformer.
+
+\bigskip
+
+Next-generation wireless networks face an increasing threat from deliberate radio-frequency
+jamming attacks, which severely degrade the communication quality of energy-constrained IoT
+devices and ground-level mobile users. This thesis investigates the anti-jamming problem in
+Device-to-Device (D2D) communication networks from a counter-intuitive perspective: rather
+than avoiding jamming signals, the system \emph{exploits} the high-power interference as an
+ambient RF energy source to enable Ambient Backscatter Communications (AmBC), while
+simultaneously deploying UAVs as dynamic three-dimensional relay nodes to support the D2D links.
+
+The system model comprises $N = 5$ source--destination user pairs (SU--DU) on the ground,
+$K = 2$ mobile UAV relays, one fixed Relay Base Station (RBS), and a single persistent ground
+jammer. Each source node selects one of three transmission modes per time slot --- direct D2D,
+RBS-assisted relay, or UAV-assisted relay --- and controls its reflection coefficient~$\alpha_i$.
+UAVs dynamically reposition in 3D space to maximize the SINR of their served SU nodes.
+
+The joint optimization problem is formulated as a Decentralized Partially Observable Markov
+Decision Process (Dec-POMDP) with $N$ SU agents and $K$ UAV agents, and is solved by an
+extended \textbf{Imitation-Augmented MADDPG (IA-MADDPG)} framework. The central contribution
+of this work is replacing the conventional MLP centralized critic with a novel
+\textbf{Transformer-GAT Centralized Critic}: a Transformer encoder aggregates multi-agent
+observations under partial observability, while a Graph Attention Network (GAT) encodes the
+UAV--SU topology graph to capture spatial inter-agent dependencies. Expert policies are used to
+pre-populate the replay buffer (warm-up) and provide behavior cloning supervision during early
+training, effectively eliminating the cold-start instability common in multi-agent RL. Additional
+techniques include Prioritized Experience Replay (PER) and TD3-style target policy smoothing.
+
+Python simulations over 600 training episodes demonstrate that the proposed method consistently
+outperforms five baseline strategies across all evaluation metrics: network reward, Transmission
+Success Rate (TSR), average throughput, mode selection efficiency, and energy efficiency.
+Ablation studies isolate the independent contribution of UAV relay, imitation learning, PER, and
+the Transformer-GAT critic.
+
+% ============================================================
+%  LỜI CẢM ƠN
+% ============================================================
 \chapter*{Lời cảm ơn}
 \addcontentsline{toc}{chapter}{Lời cảm ơn}
-% TODO
 
-%--- Mục lục ---
+Trước tiên, chúng tôi xin bày tỏ lòng biết ơn sâu sắc tới \textbf{TS. Nguyễn Ngọc Tân},
+Khoa Điện tử Viễn thông, Trường Đại học Công nghệ --- Đại học Quốc gia Hà Nội, người đã
+tận tình hướng dẫn, định hướng nghiên cứu và đồng hành cùng nhóm trong suốt quá trình thực
+hiện đề tài. Sự chỉ dẫn chuyên môn, những góp ý phản biện nghiêm túc và tinh thần khuyến
+khích của thầy là nguồn động lực không thể thiếu để chúng tôi hoàn thành công trình này.
+
+Chúng tôi xin chân thành cảm ơn toàn thể quý thầy cô Khoa Điện tử Viễn thông, Trường Đại
+học Công nghệ --- ĐHQGHN đã truyền đạt kiến thức nền tảng trong suốt bốn năm học, tạo dựng
+nên tư duy kỹ thuật và khả năng nghiên cứu khoa học mà chúng tôi đã vận dụng trực tiếp vào
+đề tài này.
+
+Chúng tôi trân trọng cảm ơn các tác giả của công trình \emph{``Turning Interference into
+Power: Intelligent Anti-Jamming for Ambient Backscatter via Imitation-Augmented MADDPG''} ---
+bài báo đặt nền móng và truyền cảm hứng cho hướng mở rộng mà đề tài theo đuổi.
+
+Lời cảm ơn chân thành cũng xin gửi tới gia đình và bạn bè --- những người luôn ở bên, chia
+sẻ khó khăn và là chỗ dựa tinh thần vững chắc trong suốt quá trình học tập và nghiên cứu.
+
+\bigskip
+
+\noindent
+Hà Nội, tháng \quad năm 2025
+
+\bigskip
+
+\noindent
+\begin{tabular}{@{}p{0.45\textwidth}p{0.45\textwidth}@{}}
+\centering Sinh viên thực hiện & \centering Sinh viên thực hiện \\[1.5cm]
+\centering \textbf{Nguyễn Thế Vinh} & \centering \textbf{Bùi Tùng Lâm}
+\end{tabular}
+
+% ============================================================
+%  MỤC LỤC
+% ============================================================
 \tableofcontents
 
-%--- Danh sách hình vẽ ---
+% ============================================================
+%  DANH SÁCH HÌNH VẼ
+% ============================================================
 \listoffigures
 \addcontentsline{toc}{chapter}{Danh sách hình vẽ}
 
-%--- Danh sách bảng ---
+% ============================================================
+%  DANH SÁCH BẢNG
+% ============================================================
 \listoftables
 \addcontentsline{toc}{chapter}{Danh sách bảng}
 
-%--- Danh sách thuật toán ---
+% ============================================================
+%  DANH SÁCH THUẬT TOÁN
+% ============================================================
 \listofalgorithms
 \addcontentsline{toc}{chapter}{Danh sách thuật toán}
 
-%--- Danh sách từ viết tắt ---
+% ============================================================
+%  DANH SÁCH TỪ VIẾT TẮT
+% ============================================================
 \chapter*{Danh sách từ viết tắt}
 \addcontentsline{toc}{chapter}{Danh sách từ viết tắt}
-\begin{table}[H]
-\centering
-\begin{tabular}{ll}
+
+\begin{longtable}{@{}p{3.8cm}p{1.5cm}p{9.2cm}@{}}
 \toprule
-\textbf{Ký hiệu} & \textbf{Ý nghĩa} \\
+\textbf{Từ viết tắt} & \textbf{Gốc} & \textbf{Giải thích} \\
 \midrule
-AmBC  & Ambient Backscatter Communication \\
-CTDE  & Centralized Training, Decentralized Execution \\
-D2D   & Device-to-Device \\
-Dec-POMDP & Decentralized Partially Observable Markov Decision Process \\
-DRL   & Deep Reinforcement Learning \\
-DU    & Destination User \\
-GAT   & Graph Attention Network \\
-GNN   & Graph Neural Network \\
-IA-MADDPG & Imitation-Augmented Multi-Agent DDPG \\
-IoT   & Internet of Things \\
-LoS   & Line-of-Sight \\
-MARL  & Multi-Agent Reinforcement Learning \\
-MDP   & Markov Decision Process \\
-NLoS  & Non-Line-of-Sight \\
-PER   & Prioritized Experience Replay \\
-POMDP & Partially Observable Markov Decision Process \\
-QoS   & Quality of Service \\
-RBS   & Relay Base Station \\
-RF    & Radio Frequency \\
-SINR  & Signal-to-Interference-plus-Noise Ratio \\
-SU    & Source User \\
-TD3   & Twin Delayed Deep Deterministic Policy Gradient \\
-TSR   & Transmission Success Rate \\
-UAV   & Unmanned Aerial Vehicle \\
+\endfirsthead
+\multicolumn{3}{l}{\small\itshape (tiếp theo)} \\
+\toprule
+\textbf{Từ viết tắt} & \textbf{Gốc} & \textbf{Giải thích} \\
+\midrule
+\endhead
 \bottomrule
-\end{tabular}
-\end{table}
+\endlastfoot
+
+A2G   & EN & Air-to-Ground --- kênh truyền từ UAV xuống mặt đất \\[3pt]
+AmBC  & EN & Ambient Backscatter Communication --- truyền thông tán xạ ngược môi trường \\[3pt]
+AWGN  & EN & Additive White Gaussian Noise --- nhiễu Gaussian trắng cộng \\[3pt]
+BC    & EN & Behavior Cloning --- nhân bản hành vi (imitation learning) \\[3pt]
+CTDE  & EN & Centralized Training, Decentralized Execution --- huấn luyện tập trung, thực thi phân tán \\[3pt]
+D2D   & EN & Device-to-Device --- truyền thông trực tiếp giữa các thiết bị \\[3pt]
+DDPG  & EN & Deep Deterministic Policy Gradient --- thuật toán gradient chính sách tất định sâu \\[3pt]
+Dec-POMDP & EN & Decentralized Partially Observable Markov Decision Process --- quá trình quyết định Markov quan sát một phần phi tập trung \\[3pt]
+DNN   & EN & Deep Neural Network --- mạng nơ-ron sâu \\[3pt]
+DoS   & EN & Denial of Service --- tấn công từ chối dịch vụ \\[3pt]
+DQN   & EN & Deep Q-Network --- mạng Q sâu \\[3pt]
+DRL   & EN & Deep Reinforcement Learning --- học tăng cường sâu \\[3pt]
+DU    & EN & Destination User --- thiết bị đích \\[3pt]
+FH    & EN & Frequency Hopping --- nhảy tần số \\[3pt]
+G2G   & EN & Ground-to-Ground --- kênh truyền mặt đất \\[3pt]
+GAT   & EN & Graph Attention Network --- mạng chú ý đồ thị \\[3pt]
+GNN   & EN & Graph Neural Network --- mạng nơ-ron đồ thị \\[3pt]
+IA-MADDPG & EN & Imitation-Augmented Multi-Agent DDPG --- MADDPG tăng cường bắt chước \\[3pt]
+IoT   & EN & Internet of Things --- Internet vạn vật \\[3pt]
+IRR   & EN & Interactive Reward Region --- vùng phần thưởng tương tác \\[3pt]
+KDE   & EN & Kernel Density Estimation --- ước lượng mật độ hạt nhân \\[3pt]
+LoS   & EN & Line-of-Sight --- đường truyền thẳng \\[3pt]
+MADDPG & EN & Multi-Agent Deep Deterministic Policy Gradient \\[3pt]
+MARL  & EN & Multi-Agent Reinforcement Learning --- học tăng cường đa tác tử \\[3pt]
+MDP   & EN & Markov Decision Process --- quá trình quyết định Markov \\[3pt]
+MLP   & EN & Multi-Layer Perceptron --- mạng nơ-ron nhiều lớp \\[3pt]
+NLoS  & EN & Non-Line-of-Sight --- đường truyền không thẳng \\[3pt]
+PER   & EN & Prioritized Experience Replay --- phát lại kinh nghiệm ưu tiên \\[3pt]
+POMDP & EN & Partially Observable MDP --- MDP quan sát một phần \\[3pt]
+PPO   & EN & Proximal Policy Optimization --- tối ưu hóa chính sách lân cận \\[3pt]
+QoS   & EN & Quality of Service --- chất lượng dịch vụ \\[3pt]
+RBS   & EN & Relay Base Station --- trạm relay cơ sở \\[3pt]
+RF    & EN & Radio Frequency --- tần số vô tuyến \\[3pt]
+RL    & EN & Reinforcement Learning --- học tăng cường \\[3pt]
+SINR  & EN & Signal-to-Interference-plus-Noise Ratio --- tỷ số tín hiệu trên nhiễu và tạp âm \\[3pt]
+SNR   & EN & Signal-to-Noise Ratio --- tỷ số tín hiệu trên tạp âm \\[3pt]
+SU    & EN & Source User --- thiết bị nguồn \\[3pt]
+TD3   & EN & Twin Delayed Deep Deterministic Policy Gradient \\[3pt]
+TMAC  & EN & Transformer-based Multi-Agent Communication \\[3pt]
+TSR   & EN & Transmission Success Rate --- tỷ lệ truyền thành công \\[3pt]
+UAV   & EN & Unmanned Aerial Vehicle --- phương tiện bay không người lái (drone) \\[3pt]
+WSN   & EN & Wireless Sensor Network --- mạng cảm biến không dây \\[3pt]
+
+\end{longtable}
 
 %=============================================================================
 % MAIN MATTER
