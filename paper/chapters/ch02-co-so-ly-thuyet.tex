@@ -1,0 +1,110 @@
+% ============================================================
+\chapter{Cơ sở lý thuyết}
+\label{chap:background}
+% ============================================================
+
+\section{Truyền thông Backscatter}
+\label{sec:bg:backscatter}
+
+\subsection{Nguyên lý hoạt động của Backscatter}
+\label{subsec:bg:backscatter:principle}
+% Phân biệt passive tag và active reader.
+% Hệ số phản xạ alpha, modulation bằng load impedance.
+
+\subsection{Phân loại: Monostatic, Bistatic, Ambient}
+\label{subsec:bg:backscatter:types}
+% Mô tả và so sánh ba paradigm.
+% Giải thích lý do chọn Ambient (AmBC) cho bài toán này.
+
+\subsection{Mô hình tín hiệu Ambient Backscatter}
+\label{subsec:bg:backscatter:signal}
+% Phương trình tín hiệu nhận tại DU trong điều kiện jamming.
+% Phân tích SINR cho backscatter.
+
+\section{Tấn công Gây nhiễu vô tuyến}
+\label{sec:bg:jamming}
+
+\subsection{Phân loại kỹ thuật jamming}
+\label{subsec:bg:jamming:types}
+% Spot jammer, sweep jammer, barrage jammer, smart jammer.
+
+\subsection{Mô hình jammer trong bài toán}
+\label{subsec:bg:jamming:model}
+% Ground-level constant-power jammer, ảnh hưởng đến SINR.
+
+\subsection{Kỹ thuật chống gây nhiễu truyền thống}
+\label{subsec:bg:antijamming:traditional}
+% Frequency hopping, spread spectrum, power control.
+% Hạn chế: phản ứng chậm, không tận dụng năng lượng jamming.
+
+\section{Truyền thông D2D}
+\label{sec:bg:d2d}
+
+\subsection{Kiến trúc và ưu điểm D2D}
+\label{subsec:bg:d2d:arch}
+
+\subsection{Thách thức D2D dưới môi trường jamming}
+\label{subsec:bg:d2d:challenge}
+
+\section{UAV trong mạng truyền thông không dây}
+\label{sec:bg:uav}
+
+\subsection{Phân loại và đặc tính UAV}
+\label{subsec:bg:uav:classification}
+
+\subsection{Mô hình kênh Air-to-Ground}
+\label{subsec:bg:uav:channel}
+% Probabilistic LoS model (ITU-R), tổn hao trung bình.
+
+\subsection{UAV làm relay động}
+\label{subsec:bg:uav:relay}
+% Decode-and-forward relay, energy model, kinematics.
+
+\section{Học tăng cường}
+\label{sec:bg:rl}
+
+\subsection{Quá trình Quyết định Markov}
+\label{subsec:bg:rl:mdp}
+% State, action, reward, transition, discount factor.
+
+\subsection{Deep Q-Network}
+\label{subsec:bg:rl:dqn}
+
+\subsection{Actor-Critic và DDPG}
+\label{subsec:bg:rl:ddpg}
+% Policy gradient, deterministic policy, replay buffer, target network.
+
+\subsection{TD3}
+\label{subsec:bg:rl:td3}
+% Clipped double Q-learning, delayed policy update, target smoothing.
+
+\section{Học tăng cường Đa tác tử}
+\label{sec:bg:marl}
+
+\subsection{Dec-POMDP và CTDE}
+\label{subsec:bg:marl:decpomdp}
+
+\subsection{MADDPG}
+\label{subsec:bg:marl:maddpg}
+% Centralized critic, decentralized actor.
+
+\subsection{Imitation Learning và Behavior Cloning}
+\label{subsec:bg:marl:il}
+% Supervised BC loss, lambda annealing, expert warm-up.
+
+\section{Transformer và Graph Attention Network}
+\label{sec:bg:transformer-gat}
+
+\subsection{Cơ chế Self-Attention và Transformer Encoder}
+\label{subsec:bg:transformer}
+
+\subsection{Graph Neural Network và Graph Attention}
+\label{subsec:bg:gat}
+% Multi-head attention trên đồ thị, message passing.
+
+\subsection{Transformer-GAT trong học tăng cường đa tác tử}
+\label{subsec:bg:tmac}
+% TMAC-style encoder; lý do kết hợp Transformer + GAT cho multi-UAV.
+
+\section{Tổng kết chương}
+\label{sec:bg:summary}

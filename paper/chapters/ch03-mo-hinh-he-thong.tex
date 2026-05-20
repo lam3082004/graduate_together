@@ -1,0 +1,106 @@
+% ============================================================
+\chapter{Mô hình Hệ thống và Bài toán Tối ưu}
+\label{chap:system}
+% ============================================================
+
+\section{Kiến trúc mạng}
+\label{sec:sys:architecture}
+
+\subsection{Các thành phần mạng}
+\label{subsec:sys:entities}
+% Bảng: SU_i, DU_i, RBS, UAV U_k, Jammer J.
+% Hình minh họa topo mạng 2D.
+
+\subsection{Cấu hình triển khai và ràng buộc vật lý}
+\label{subsec:sys:deployment}
+% Diện tích 200x200 m², N=5 cặp, K=2 UAV, 1 jammer.
+% Ràng buộc độ cao, tốc độ bay, năng lượng UAV.
+
+\section{Mô hình tín hiệu Backscatter}
+\label{sec:sys:signal}
+
+\subsection{Nguyên lý khai thác năng lượng jamming}
+\label{subsec:sys:signal:harvest}
+% Jammer làm RF excitation cho AmBC.
+
+\subsection{Phương trình tín hiệu nhận và hệ số phản xạ}
+\label{subsec:sys:signal:eq}
+% y_{D_i} = sqrt(P_J) h_{J,S_i} h_{S_i,D_i} alpha_i x + n
+
+\section{Mô hình kênh truyền}
+\label{sec:sys:channel}
+
+\subsection{Kênh mặt đất: Rayleigh Fading}
+\label{subsec:sys:channel:ground}
+% g_{X,Y} = |h_{X,Y}|^2, h ~ CN(0, d^{-eta}).
+
+\subsection{Kênh không-đất: Probabilistic LoS}
+\label{subsec:sys:channel:a2g}
+% P_LoS(theta), L_LoS, L_NLoS, bar{g}_{U_k,X}.
+
+\subsection{Tổn hao đường truyền trung bình}
+\label{subsec:sys:channel:pathloss}
+
+\section{Các chế độ truyền thông}
+\label{sec:sys:modes}
+
+\subsection{Mode 0 --- Truyền thẳng D2D}
+\label{subsec:sys:mode0}
+% SINR gamma_i^{D2D}, điều kiện áp dụng.
+
+\subsection{Mode 1 --- Relay qua RBS cố định}
+\label{subsec:sys:mode1}
+% SINR gamma_i^{RBS} = min(hop1, hop2), bottleneck phân tích.
+
+\subsection{Mode 2 --- Relay qua UAV di động}
+\label{subsec:sys:mode2}
+% SINR gamma_i^{UAV} với bar{g} A2G, ưu điểm so với Mode 1.
+
+\subsection{So sánh hiệu năng theo mode trong các kịch bản}
+\label{subsec:sys:mode:compare}
+% Bảng so sánh: close, far, RBS-far, LoS blocked.
+
+\section{Phát biểu bài toán tối ưu}
+\label{sec:sys:optimization}
+
+\subsection{Biến quyết định}
+\label{subsec:sys:opt:vars}
+% alpha_i, m_i, Delta p_{U_k}.
+
+\subsection{Hàm phần thưởng composite}
+\label{subsec:sys:opt:reward}
+% r_i = w1*log(1+gamma) + w2*tanh(...) - w3*alpha^2 - w4*E_move
+% Phân tích từng số hạng và tác dụng thiết kế.
+
+\subsection{Hàm phần thưởng UAV positioning}
+\label{subsec:sys:opt:uav-reward}
+% r_{U_k}^{pos} = sum Delta gamma_i - w4 * norm(Delta p)
+
+\subsection{Hàm mục tiêu và ràng buộc đầy đủ}
+\label{subsec:sys:opt:objective}
+% max E[sum_t sum_i r_i(t)]
+% Liệt kê toàn bộ ràng buộc.
+
+\section{Mô hình hoá Dec-POMDP Đa tác tử}
+\label{sec:sys:pomdp}
+
+\subsection{Không gian trạng thái toàn cục}
+\label{subsec:sys:pomdp:state}
+
+\subsection{Không gian quan sát cục bộ}
+\label{subsec:sys:pomdp:obs}
+% o_i cho SU, o_{U_k} cho UAV.
+
+\subsection{Không gian hành động}
+\label{subsec:sys:pomdp:action}
+% Hybrid (SU): continuous alpha + discrete m.
+% Continuous (UAV): (Delta x, Delta y, Delta z).
+
+\subsection{Hàm phần thưởng toàn cục cho Centralized Critic}
+\label{subsec:sys:pomdp:global-reward}
+
+\subsection{Tính quan sát một phần}
+\label{subsec:sys:pomdp:partial}
+
+\section{Tổng kết chương}
+\label{sec:sys:summary}

@@ -1,19 +1,41 @@
 %=============================================================================
-% ĐHQGHN - Trường Đại học Công nghệ
+% ĐHQGHN -- Trường Đại học Công nghệ
 % Đồ án tốt nghiệp đại học
+%
+% *** BẮT BUỘC compile bằng XeLaTeX (KHÔNG dùng pdfLaTeX) ***
+%
+% Cách build:
+%   xelatex  main
+%   biber    main
+%   xelatex  main
+%   xelatex  main
+%
+% Trong Overleaf: Settings → Compiler → XeLaTeX
+% Trong TeXstudio: Options → Build → Default compiler → XeLaTeX
 %=============================================================================
 \documentclass[12pt, a4paper, twoside]{report}
 
 %-----------------------------------------------------------------------------
-% Encoding & Language
+% Font và ngôn ngữ  (XeLaTeX + fontspec -- hỗ trợ Unicode/UTF-8 hoàn toàn)
 %-----------------------------------------------------------------------------
-\usepackage[utf8]{inputenc}
-\usepackage[T5]{fontenc}
-\usepackage[vietnamese,english]{babel}
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX, Scale=MatchLowercase}
+
+% Font chính: Times New Roman (có sẵn trên Windows/Mac/Overleaf)
+% Thay bằng "Linux Libertine O" nếu dùng Linux thuần
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont[Scale=0.92]{Courier New}
+
+% Đa ngôn ngữ với polyglossia (thay cho babel khi dùng XeLaTeX)
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\setotherlanguage{english}
+
 \usepackage{indentfirst}
 
 %-----------------------------------------------------------------------------
-% Typography & Layout
+% Bố cục trang
 %-----------------------------------------------------------------------------
 \usepackage[
   top=3cm, bottom=3cm,
@@ -22,11 +44,9 @@
 ]{geometry}
 \usepackage{setspace}
 \onehalfspacing
-\usepackage{microtype}
-\usepackage{lmodern}
 
 %-----------------------------------------------------------------------------
-% Mathematics
+% Toán học
 %-----------------------------------------------------------------------------
 \usepackage{amsmath, amssymb, amsfonts, amsthm}
 \usepackage{mathtools}
@@ -34,7 +54,7 @@
 \usepackage{cases}
 
 %-----------------------------------------------------------------------------
-% Figures, Tables, Algorithms
+% Hình vẽ, bảng, thuật toán
 %-----------------------------------------------------------------------------
 \usepackage{graphicx}
 \usepackage{float}
@@ -50,7 +70,7 @@
 \usepackage{xcolor}
 
 %-----------------------------------------------------------------------------
-% References & Hyperlinks
+% Tài liệu tham khảo và liên kết
 %-----------------------------------------------------------------------------
 \usepackage[
   backend=biber,
@@ -65,13 +85,13 @@
   hidelinks,
   bookmarks=true,
   bookmarksnumbered=true,
-  pdftitle={UAV-Assisted Ambient Backscatter Anti-Jamming with Transformer-GAT IA-MADDPG},
+  pdftitle={Mang Truyen Thong Backscatter Moi Truong Chong Gay Nhieu voi Su Ho Tro cua UAV},
   pdfauthor={Nguyen The Vinh, Bui Tung Lam}
 ]{hyperref}
 \usepackage{cleveref}
 
 %-----------------------------------------------------------------------------
-% Header / Footer
+% Đầu trang / chân trang
 %-----------------------------------------------------------------------------
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -82,7 +102,7 @@
 \renewcommand{\headrulewidth}{0.4pt}
 
 %-----------------------------------------------------------------------------
-% Chapter Heading Style
+% Định dạng tiêu đề chương
 %-----------------------------------------------------------------------------
 \usepackage{titlesec}
 \titleformat{\chapter}[display]
@@ -91,7 +111,7 @@
 \titlespacing*{\chapter}{0pt}{0pt}{40pt}
 
 %-----------------------------------------------------------------------------
-% Custom Commands
+% Lệnh tắt toán học
 %-----------------------------------------------------------------------------
 \newcommand{\bs}[1]{\boldsymbol{#1}}
 \newcommand{\set}[1]{\mathcal{#1}}
@@ -99,1072 +119,53 @@
 \newcommand{\sinr}{\text{SINR}}
 \newcommand{\snr}{\text{SNR}}
 
-% Theorem-like environments
-\newtheorem{theorem}{Theorem}[chapter]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
+% Môi trường định lý
+\newtheorem{theorem}{Định lý}[chapter]
+\newtheorem{lemma}[theorem]{Bổ đề}
+\newtheorem{proposition}[theorem]{Mệnh đề}
+\newtheorem{corollary}[theorem]{Hệ quả}
 \theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
+\newtheorem{definition}[theorem]{Định nghĩa}
 \theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
+\newtheorem{remark}[theorem]{Nhận xét}
 
 %=============================================================================
 \begin{document}
 %=============================================================================
 
-%-----------------------------------------------------------------------------
-% TRANG BÌA CHÍNH (Bìa 1)
-%-----------------------------------------------------------------------------
-\begin{titlepage}
-\thispagestyle{empty}
-\begin{center}
+% ---- Trang bìa (không đánh số) ----
+\input{frontmatter/titlepage}
 
-\MakeUppercase{\normalsize\bfseries Đại học Quốc gia Hà Nội}\\[0.12cm]
-\rule{\linewidth}{1.5pt}\\[0.04cm]
-\rule{\linewidth}{0.5pt}\\[0.18cm]
-\MakeUppercase{\large\bfseries Trường Đại học Công nghệ}\\[0.08cm]
-{\normalsize Khoa Công nghệ Thông tin}\\[0.9cm]
-
-\includegraphics[width=3.2cm]{uet_logo.png}\\[0.9cm]
-
-{\Large\bfseries ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC}\\[0.3cm]
-{\small Ngành: Công nghệ Thông tin \quad|\quad Hệ: Chính quy}\\[1.1cm]
-
-\noindent\rule{\linewidth}{1.5pt}\\[0.05cm]
-\noindent\rule{\linewidth}{0.5pt}\\[0.45cm]
-{%
-  \setlength{\baselineskip}{1.5\baselineskip}
-  \large\bfseries
-  Mạng Truyền Thông Backscatter Môi Trường\\
-  Chống Gây Nhiễu với Sự Hỗ Trợ của UAV\\
-  Sử Dụng Học Tăng Cường Đa Tác Tử\\
-  Imitation-Augmented\\[0.1cm]
-}
-\noindent\rule{\linewidth}{0.5pt}\\[0.05cm]
-\noindent\rule{\linewidth}{1.5pt}\\[1.2cm]
-
-\begin{tabular}{@{}p{0.46\linewidth}@{\hspace{0.08\linewidth}}p{0.46\linewidth}@{}}
-  {\bfseries Sinh viên thực hiện:}
-    & {\bfseries Giáo viên hướng dẫn:} \\[0.35cm]
-  Nguyễn Thế Vinh\\MSSV: 22021174
-    & TS. Nguyễn Ngọc Tân\\
-      Khoa Công nghệ Thông tin\\
-      Trường ĐH Công nghệ -- ĐHQGHN \\[0.35cm]
-  Bùi Tùng Lâm\\MSSV: 22021225
-    & \\
-\end{tabular}
-
-\vfill
-
-\rule{\linewidth}{0.5pt}\\[0.18cm]
-{\normalsize\bfseries Hà Nội -- Năm 2025}
-
-\end{center}
-\end{titlepage}
-
-%-----------------------------------------------------------------------------
-% TRANG BÌA PHỤ (Bìa 2 -- bản nộp hội đồng)
-%-----------------------------------------------------------------------------
-\begin{titlepage}
-\thispagestyle{empty}
-\begin{center}
-
-\MakeUppercase{\normalsize\bfseries Đại học Quốc gia Hà Nội}\\[0.1cm]
-\rule{\linewidth}{1.5pt}\\[0.04cm]
-\rule{\linewidth}{0.5pt}\\[0.15cm]
-\MakeUppercase{\large\bfseries Trường Đại học Công nghệ}\\[0.06cm]
-{\normalsize Khoa Công nghệ Thông tin}\\[0.75cm]
-
-\includegraphics[width=3.0cm]{uet_logo.png}\\[0.75cm]
-
-{\Large\bfseries ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC}\\[1.0cm]
-
-\noindent\rule{\linewidth}{1.5pt}\\[0.05cm]
-\noindent\rule{\linewidth}{0.5pt}\\[0.4cm]
-{%
-  \setlength{\baselineskip}{1.5\baselineskip}
-  \large\bfseries
-  Mạng Truyền Thông Backscatter Môi Trường\\
-  Chống Gây Nhiễu với Sự Hỗ Trợ của UAV\\
-  Sử Dụng Học Tăng Cường Đa Tác Tử\\
-  Imitation-Augmented\\[0.1cm]
-}
-\noindent\rule{\linewidth}{0.5pt}\\[0.05cm]
-\noindent\rule{\linewidth}{1.5pt}\\[0.9cm]
-
-% Bảng thông tin chi tiết
-\begin{tabular}{@{}r@{\hspace{0.6cm}}l@{}}
-  \bfseries Sinh viên 1:          & Nguyễn Thế Vinh \\[0.05cm]
-                                   & MSSV: 22021174 \\[0.3cm]
-  \bfseries Sinh viên 2:          & Bùi Tùng Lâm \\[0.05cm]
-                                   & MSSV: 22021225 \\[0.3cm]
-  \bfseries Ngành:                 & Công nghệ Thông tin \\[0.1cm]
-  \bfseries Khoá:                  & QH-2022 (Khoá 67) \\[0.3cm]
-  \bfseries Giáo viên hướng dẫn:  & TS. Nguyễn Ngọc Tân \\[0.05cm]
-                                   & Khoa Công nghệ Thông tin \\[0.05cm]
-                                   & Trường Đại học Công nghệ -- ĐHQGHN \\
-\end{tabular}
-
-\vfill
-
-% Chữ ký
-\begin{tabular}{@{}p{0.46\linewidth}@{\hspace{0.08\linewidth}}p{0.46\linewidth}@{}}
-  \centering\bfseries Giáo viên hướng dẫn
-    & \centering\bfseries Sinh viên thực hiện \\[0.25cm]
-  \centering{\small\itshape (Ký và ghi rõ họ tên)}
-    & \centering{\small\itshape (Ký và ghi rõ họ tên)} \\[2.2cm]
-  \centering TS. Nguyễn Ngọc Tân
-    & \centering Nguyễn Thế Vinh \hspace{0.5cm} Bùi Tùng Lâm \\
-\end{tabular}
-
-\vspace{0.7cm}
-\rule{\linewidth}{0.5pt}\\[0.14cm]
-{\normalsize\bfseries Hà Nội -- Năm 2025}
-
-\end{center}
-\end{titlepage}
-
-%-----------------------------------------------------------------------------
-% FRONT MATTER
-%-----------------------------------------------------------------------------
+% ---- Phần đầu (số trang La Mã) ----
 \pagenumbering{roman}
 \setcounter{page}{1}
 
-% ============================================================
-%  TÓM TẮT (Vietnamese Abstract)
-% ============================================================
-\chapter*{Tóm tắt}
-\addcontentsline{toc}{chapter}{Tóm tắt}
+\input{frontmatter/tomtat}
+\input{frontmatter/loicamon}
 
-\noindent
-\textbf{Từ khóa:} Truyền thông Backscatter Môi trường, chống gây nhiễu, mạng D2D, UAV relay,
-học tăng cường đa tác tử, MADDPG, Imitation Learning, Graph Attention Network, Transformer.
-
-\bigskip
-
-Trong bối cảnh mạng truyền thông thế hệ mới, các thiết bị IoT và người dùng di động mặt đất
-ngày càng đối mặt với nguy cơ bị tấn công gây nhiễu vô tuyến (jamming) có chủ đích, gây suy
-giảm nghiêm trọng chất lượng liên lạc. Đề tài này nghiên cứu bài toán chống gây nhiễu cho mạng
-truyền thông Device-to-Device (D2D) theo hướng tiếp cận mới: thay vì né tránh tín hiệu nhiễu,
-hệ thống \emph{khai thác} năng lượng RF từ tín hiệu gây nhiễu công suất cao làm nguồn kích
-hoạt cho truyền thông Ambient Backscatter (AmBC), đồng thời triển khai các UAV làm relay
-động trong không gian ba chiều nhằm hỗ trợ đường truyền D2D.
-
-Hệ thống gồm $N = 5$ cặp thiết bị nguồn--đích (SU--DU) mặt đất, $K = 2$ UAV relay di động,
-một trạm relay cố định (RBS) và một thiết bị gây nhiễu mặt đất. Mỗi nguồn SU có thể chọn
-một trong ba chế độ truyền: truyền thẳng D2D, relay qua RBS, hoặc relay qua UAV, đồng thời
-điều chỉnh hệ số phản xạ $\alpha_i$. Các UAV tối ưu vị trí 3D theo thời gian nhằm tối đa hóa
-SINR cho các SU trong phạm vi phục vụ.
-
-Bài toán được mô hình hóa là Dec-POMDP đa tác tử gồm $N$ SU agent và $K$ UAV agent, và được
-giải quyết bằng framework \textbf{IA-MADDPG mở rộng} (Imitation-Augmented Multi-Agent DDPG).
-Điểm đóng góp chính của đề tài là thay thế bộ critic MLP truyền thống bằng
-\textbf{Transformer-GAT Centralized Critic}: bộ mã hóa Transformer xử lý quan sát của toàn
-bộ tác tử dưới điều kiện thông tin không đầy đủ, trong khi Graph Attention Network (GAT) khai
-thác cấu trúc đồ thị kết nối UAV--SU để tổng hợp thông tin topo mạng. Expert policy heuristic
-được dùng để khởi động bộ nhớ replay (warm-up) và cung cấp tín hiệu bắt chước (behavior
-cloning) trong giai đoạn đầu huấn luyện, nhờ đó tránh được bất ổn cold-start đặc trưng của
-MARL.
-
-Kết quả mô phỏng trên Python với 600 episode cho thấy phương pháp đề xuất vượt trội so với
-năm baseline về tổng phần thưởng mạng, tỷ lệ truyền thành công (TSR), thông lượng trung
-bình và hiệu quả năng lượng. Nghiên cứu ablation xác nhận đóng góp độc lập của từng thành
-phần: UAV relay, imitation learning, Prioritized Experience Replay, và Transformer-GAT critic.
-
-% ============================================================
-%  TÓM TẮT TIẾNG ANH
-% ============================================================
-\chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
-
-\noindent
-\textbf{Keywords:} truyền thông backscatter môi trường, chống gây nhiễu, mạng D2D,
-UAV relay, học tăng cường sâu đa tác tử, MADDPG, imitation learning,
-mạng chú ý đồ thị, Transformer.
-
-\bigskip
-
-Các mạng truyền thông thế hệ tiếp theo đang đối mặt ngày càng nhiều với các cuộc tấn công gây
-nhiễu vô tuyến (jamming) có chủ đích, làm suy giảm nghiêm trọng chất lượng truyền thông của
-các thiết bị IoT giới hạn năng lượng và người dùng di động mặt đất. Đề tài này nghiên cứu
-bài toán chống gây nhiễu trong mạng truyền thông Device-to-Device (D2D) từ một góc nhìn
-mới: thay vì né tránh tín hiệu jamming, hệ thống chủ động \emph{khai thác} năng lượng RF
-từ tín hiệu nhiễu công suất cao làm nguồn kích hoạt cho truyền thông Ambient Backscatter
-(AmBC), đồng thời triển khai các UAV làm relay động ba chiều để hỗ trợ đường truyền D2D.
-
-Mô hình hệ thống gồm $N = 5$ cặp thiết bị nguồn--đích (SU--DU) mặt đất, $K = 2$ UAV relay
-di động, một trạm relay cố định (RBS) và một thiết bị gây nhiễu mặt đất liên tục. Mỗi thiết
-bị nguồn lựa chọn một trong ba chế độ truyền theo từng khe thời gian --- truyền thẳng D2D,
-relay qua RBS, hoặc relay qua UAV --- đồng thời điều chỉnh hệ số phản xạ~$\alpha_i$. Các UAV
-điều chỉnh vị trí 3D liên tục nhằm tối đa hóa SINR cho các thiết bị SU trong phạm vi phục vụ.
-
-Bài toán tối ưu liên hợp được phát biểu dưới dạng Quá trình Quyết định Markov Phi Tập
-trung Quan sát Một phần (Dec-POMDP) với $N$ SU agent và $K$ UAV agent, và được giải quyết
-bằng framework mở rộng \textbf{IA-MADDPG} (Imitation-Augmented MADDPG). Đóng góp trung tâm
-của đề tài là thay thế critic MLP truyền thống bằng \textbf{Transformer-GAT Centralized Critic}
-mới: bộ mã hóa Transformer tổng hợp quan sát đa tác tử trong điều kiện thông tin không đầy
-đủ, trong khi Graph Attention Network (GAT) mã hóa đồ thị topo UAV--SU để nắm bắt các phụ
-thuộc không gian giữa các tác tử. Ngoài ra, expert policy được sử dụng để khởi tạo trước
-bộ nhớ replay (warm-up) và cung cấp giám sát behavior cloning trong giai đoạn đầu huấn
-luyện, loại bỏ bất ổn cold-start đặc trưng của MARL. Các kỹ thuật bổ sung bao gồm Prioritized
-Experience Replay (PER) và làm mịn chính sách mục tiêu theo kiểu TD3.
-
-Kết quả mô phỏng Python qua 600 episode huấn luyện cho thấy phương pháp đề xuất vượt trội
-so với năm phương pháp baseline trên toàn bộ chỉ số đánh giá: phần thưởng mạng, tỷ lệ
-truyền thành công (TSR), thông lượng trung bình, hiệu quả lựa chọn chế độ và hiệu quả
-năng lượng. Nghiên cứu ablation định lượng đóng góp độc lập của UAV relay, imitation
-learning, PER và Transformer-GAT critic.
-
-% ============================================================
-%  LỜI CẢM ƠN
-% ============================================================
-\chapter*{Lời cảm ơn}
-\addcontentsline{toc}{chapter}{Lời cảm ơn}
-
-Trước tiên, chúng tôi xin bày tỏ lòng biết ơn sâu sắc tới \textbf{TS. Nguyễn Ngọc Tân},
-Khoa Điện tử Viễn thông, Trường Đại học Công nghệ --- Đại học Quốc gia Hà Nội, người đã
-tận tình hướng dẫn, định hướng nghiên cứu và đồng hành cùng nhóm trong suốt quá trình thực
-hiện đề tài. Sự chỉ dẫn chuyên môn, những góp ý phản biện nghiêm túc và tinh thần khuyến
-khích của thầy là nguồn động lực không thể thiếu để chúng tôi hoàn thành công trình này.
-
-Chúng tôi xin chân thành cảm ơn toàn thể quý thầy cô Khoa Điện tử Viễn thông, Trường Đại
-học Công nghệ --- ĐHQGHN đã truyền đạt kiến thức nền tảng trong suốt bốn năm học, tạo dựng
-nên tư duy kỹ thuật và khả năng nghiên cứu khoa học mà chúng tôi đã vận dụng trực tiếp vào
-đề tài này.
-
-Chúng tôi trân trọng cảm ơn các tác giả của công trình \emph{``Turning Interference into
-Power: Intelligent Anti-Jamming for Ambient Backscatter via Imitation-Augmented MADDPG''} ---
-bài báo đặt nền móng và truyền cảm hứng cho hướng mở rộng mà đề tài theo đuổi.
-
-Lời cảm ơn chân thành cũng xin gửi tới gia đình và bạn bè --- những người luôn ở bên, chia
-sẻ khó khăn và là chỗ dựa tinh thần vững chắc trong suốt quá trình học tập và nghiên cứu.
-
-\bigskip
-
-\noindent
-Hà Nội, tháng \quad năm 2025
-
-\bigskip
-
-\noindent
-\begin{tabular}{@{}p{0.45\textwidth}p{0.45\textwidth}@{}}
-\centering Sinh viên thực hiện & \centering Sinh viên thực hiện \\[1.5cm]
-\centering \textbf{Nguyễn Thế Vinh} & \centering \textbf{Bùi Tùng Lâm}
-\end{tabular}
-
-% ============================================================
-%  MỤC LỤC
-% ============================================================
 \tableofcontents
+\listoffigures   \addcontentsline{toc}{chapter}{Danh sách hình vẽ}
+\listoftables    \addcontentsline{toc}{chapter}{Danh sách bảng}
+\listofalgorithms\addcontentsline{toc}{chapter}{Danh sách thuật toán}
 
-% ============================================================
-%  DANH SÁCH HÌNH VẼ
-% ============================================================
-\listoffigures
-\addcontentsline{toc}{chapter}{Danh sách hình vẽ}
+\input{frontmatter/tuvaitat}
 
-% ============================================================
-%  DANH SÁCH BẢNG
-% ============================================================
-\listoftables
-\addcontentsline{toc}{chapter}{Danh sách bảng}
-
-% ============================================================
-%  DANH SÁCH THUẬT TOÁN
-% ============================================================
-\listofalgorithms
-\addcontentsline{toc}{chapter}{Danh sách thuật toán}
-
-% ============================================================
-%  DANH SÁCH TỪ VIẾT TẮT
-% ============================================================
-\chapter*{Danh sách từ viết tắt}
-\addcontentsline{toc}{chapter}{Danh sách từ viết tắt}
-
-\begin{longtable}{@{}p{3.8cm}p{1.5cm}p{9.2cm}@{}}
-\toprule
-\textbf{Từ viết tắt} & \textbf{Gốc} & \textbf{Giải thích} \\
-\midrule
-\endfirsthead
-\multicolumn{3}{l}{\small\itshape (tiếp theo)} \\
-\toprule
-\textbf{Từ viết tắt} & \textbf{Gốc} & \textbf{Giải thích} \\
-\midrule
-\endhead
-\bottomrule
-\endlastfoot
-
-A2G   & EN & Air-to-Ground --- kênh truyền từ UAV xuống mặt đất \\[3pt]
-AmBC  & EN & Ambient Backscatter Communication --- truyền thông tán xạ ngược môi trường \\[3pt]
-AWGN  & EN & Additive White Gaussian Noise --- nhiễu Gaussian trắng cộng \\[3pt]
-BC    & EN & Behavior Cloning --- nhân bản hành vi (imitation learning) \\[3pt]
-CTDE  & EN & Centralized Training, Decentralized Execution --- huấn luyện tập trung, thực thi phân tán \\[3pt]
-D2D   & EN & Device-to-Device --- truyền thông trực tiếp giữa các thiết bị \\[3pt]
-DDPG  & EN & Deep Deterministic Policy Gradient --- thuật toán gradient chính sách tất định sâu \\[3pt]
-Dec-POMDP & EN & Decentralized Partially Observable Markov Decision Process --- quá trình quyết định Markov quan sát một phần phi tập trung \\[3pt]
-DNN   & EN & Deep Neural Network --- mạng nơ-ron sâu \\[3pt]
-DoS   & EN & Denial of Service --- tấn công từ chối dịch vụ \\[3pt]
-DQN   & EN & Deep Q-Network --- mạng Q sâu \\[3pt]
-DRL   & EN & Deep Reinforcement Learning --- học tăng cường sâu \\[3pt]
-DU    & EN & Destination User --- thiết bị đích \\[3pt]
-FH    & EN & Frequency Hopping --- nhảy tần số \\[3pt]
-G2G   & EN & Ground-to-Ground --- kênh truyền mặt đất \\[3pt]
-GAT   & EN & Graph Attention Network --- mạng chú ý đồ thị \\[3pt]
-GNN   & EN & Graph Neural Network --- mạng nơ-ron đồ thị \\[3pt]
-IA-MADDPG & EN & Imitation-Augmented Multi-Agent DDPG --- MADDPG tăng cường bắt chước \\[3pt]
-IoT   & EN & Internet of Things --- Internet vạn vật \\[3pt]
-IRR   & EN & Interactive Reward Region --- vùng phần thưởng tương tác \\[3pt]
-KDE   & EN & Kernel Density Estimation --- ước lượng mật độ hạt nhân \\[3pt]
-LoS   & EN & Line-of-Sight --- đường truyền thẳng \\[3pt]
-MADDPG & EN & Multi-Agent Deep Deterministic Policy Gradient \\[3pt]
-MARL  & EN & Multi-Agent Reinforcement Learning --- học tăng cường đa tác tử \\[3pt]
-MDP   & EN & Markov Decision Process --- quá trình quyết định Markov \\[3pt]
-MLP   & EN & Multi-Layer Perceptron --- mạng nơ-ron nhiều lớp \\[3pt]
-NLoS  & EN & Non-Line-of-Sight --- đường truyền không thẳng \\[3pt]
-PER   & EN & Prioritized Experience Replay --- phát lại kinh nghiệm ưu tiên \\[3pt]
-POMDP & EN & Partially Observable MDP --- MDP quan sát một phần \\[3pt]
-PPO   & EN & Proximal Policy Optimization --- tối ưu hóa chính sách lân cận \\[3pt]
-QoS   & EN & Quality of Service --- chất lượng dịch vụ \\[3pt]
-RBS   & EN & Relay Base Station --- trạm relay cơ sở \\[3pt]
-RF    & EN & Radio Frequency --- tần số vô tuyến \\[3pt]
-RL    & EN & Reinforcement Learning --- học tăng cường \\[3pt]
-SINR  & EN & Signal-to-Interference-plus-Noise Ratio --- tỷ số tín hiệu trên nhiễu và tạp âm \\[3pt]
-SNR   & EN & Signal-to-Noise Ratio --- tỷ số tín hiệu trên tạp âm \\[3pt]
-SU    & EN & Source User --- thiết bị nguồn \\[3pt]
-TD3   & EN & Twin Delayed Deep Deterministic Policy Gradient \\[3pt]
-TMAC  & EN & Transformer-based Multi-Agent Communication \\[3pt]
-TSR   & EN & Transmission Success Rate --- tỷ lệ truyền thành công \\[3pt]
-UAV   & EN & Unmanned Aerial Vehicle --- phương tiện bay không người lái (drone) \\[3pt]
-WSN   & EN & Wireless Sensor Network --- mạng cảm biến không dây \\[3pt]
-
-\end{longtable}
-
-%=============================================================================
-% MAIN MATTER
-%=============================================================================
+% ---- Phần chính (số trang Ả Rập) ----
 \pagenumbering{arabic}
 \setcounter{page}{1}
 
-% ============================================================
-\chapter{Giới thiệu}
-\label{chap:intro}
-% ============================================================
-
-\section{Bối cảnh và động lực nghiên cứu}
-\label{sec:intro:motivation}
-
-Sự bùng nổ của Internet vạn vật (IoT) và những bước tiến vượt bậc trong triển khai mạng
-không dây thế hệ thứ năm (5G) và thứ sáu (6G) đang đặt ra yêu cầu ngày càng khắt khe về
-khả năng kết nối đáng tin cậy, độ trễ thấp và hiệu quả năng lượng cho hàng tỷ thiết bị
-đầu cuối. Trong bối cảnh đó, mô hình truyền thông thiết bị-với-thiết bị (Device-to-Device
---- D2D) nổi lên như một giải pháp kiến trúc then chốt: thay vì định tuyến mọi lưu lượng
-qua trạm gốc, các thiết bị liền kề có thể giao tiếp trực tiếp với nhau, từ đó giảm tải
-mạng lõi, tối ưu hiệu suất phổ tần cục bộ và cải thiện trải nghiệm người dùng
-\cite{gu2023uav}.
-
-Tuy nhiên, môi trường vô tuyến vốn mang đặc tính mở và chia sẻ, tạo điều kiện thuận lợi
-cho các cuộc tấn công gây nhiễu (jamming) có chủ đích. Trong kiểu tấn công này, kẻ địch
-phát liên tục một tín hiệu RF công suất cao nhằm áp đảo tín hiệu hợp lệ, làm suy giảm
-nghiêm trọng tỷ số tín hiệu trên nhiễu và tạp âm (SINR) tại các thiết bị thu, dẫn đến
-sụt giảm thông lượng, tăng tỷ lệ lỗi bit, và trong trường hợp cực đoan có thể vô hiệu hóa
-hoàn toàn đường truyền \cite{pelechrinis2011dos}. Các thiết bị IoT -- vốn bị ràng buộc
-chặt chẽ về dung lượng pin, khả năng xử lý và không gian lưu trữ -- đặc biệt dễ bị tổn
-thương trước kiểu tấn công này.
-
-Các phương pháp phòng thủ truyền thống như nhảy tần (Frequency Hopping) hay trải phổ
-(Spread Spectrum) đang ngày càng bộc lộ giới hạn. Khi đối mặt với các jammer thông minh
-có khả năng theo dõi và bắt chước chiến lược của hệ thống hợp lệ, những phương pháp phản
-ứng tĩnh này không còn đủ hiệu quả \cite{grover2014jamming}. Quan trọng hơn, tất cả các
-tiếp cận này đều coi tín hiệu jamming là mối đe dọa cần né tránh, trong khi bản thân tín
-hiệu RF công suất cao từ jammer lại chứa đựng một nguồn năng lượng miễn phí đáng kể.
-
-Nhận thức đó thúc đẩy việc ứng dụng kỹ thuật \emph{Ambient Backscatter} (AmBC) vào bài
-toán chống jamming. Thay vì phát sóng tự thân -- đòi hỏi nguồn điện riêng -- các thiết bị
-backscatter chỉ cần điều chế và phản xạ lại tín hiệu RF môi trường (ở đây chính là tín
-hiệu jamming) để truyền thông tin đến đích. Công suất tiêu thụ của thẻ backscatter gần như
-bằng không, biến AmBC trở thành ứng viên lý tưởng cho các thiết bị IoT giới hạn năng lượng
-\cite{huynh2019jam}. Điểm cốt lõi trong đề tài này là một sự đảo ngược quan niệm: hệ thống
-không coi jamming là kẻ thù, mà chủ động \emph{biến kẻ thù thành tài nguyên}, khai thác
-chính công suất RF của jammer làm nguồn kích hoạt cho truyền thông.
-
-Mặc dù vậy, do tín hiệu backscatter có mức công suất rất thấp, chất lượng đường truyền D2D
-phụ thuộc mạnh vào khoảng cách và điều kiện kênh truyền. Khi hai thiết bị ở xa nhau hoặc bị
-che khuất bởi địa hình -- tình huống phổ biến trong các môi trường đô thị và công nghiệp --
-tín hiệu phản xạ không đủ mạnh để truyền tin cậy. Để giải quyết nút thắt này, đề tài khai
-thác tính linh hoạt ba chiều của thiết bị bay không người lái (UAV) với vai trò relay trung
-gian động. Nhờ khả năng di chuyển tự do trong không gian 3D, UAV có thể chủ động bay đến
-vị trí tối ưu để đồng thời cải thiện cả hai chặng kênh truyền (nguồn-to-UAV và UAV-to-đích),
-đồng thời tận dụng lợi thế xác suất đường truyền thẳng (LoS) cao của kênh không-đất (A2G)
-\cite{duo2020antijamming3d}.
-
-Điều phối nhiều UAV và nhiều thiết bị SU để đưa ra quyết định tối ưu trong thời gian thực
-là bài toán đa tác tử có độ phức tạp cao: không gian trạng thái liên tục, thông tin quan sát
-không đầy đủ (do mỗi tác tử chỉ có thể quan sát trạng thái cục bộ), và môi trường phi tuyến
-thay đổi liên tục. Học tăng cường sâu đa tác tử (MARL), đặc biệt là MADDPG với paradigm
-huấn luyện tập trung -- thực thi phân tán (CTDE), đã chứng minh hiệu quả trong các bài toán
-tương tự \cite{lowe2017maddpg}. Tuy nhiên, MADDPG tiêu chuẩn bị hạn chế bởi bất ổn
-cold-start và khó hội tụ trong không gian hành động nhiều chiều, đòi hỏi những kỹ thuật
-bổ sung để đảm bảo chất lượng huấn luyện.
-
-Từ những phân tích trên, đề tài đặt ra câu hỏi nghiên cứu trung tâm:
-
-\begin{quote}
-\itshape
-Làm thế nào để huấn luyện đồng thời nhiều UAV agent và nhiều SU agent -- sử dụng học tăng
-cường sâu kết hợp imitation learning và Transformer-GAT -- nhằm tối đa hóa thông lượng D2D,
-đáp ứng ràng buộc QoS và tiết kiệm năng lượng, trong điều kiện bị tấn công gây nhiễu liên
-tục và thông tin kênh truyền không đầy đủ?
-\end{quote}
-
-\section{Tình hình nghiên cứu trong và ngoài nước}
-\label{sec:intro:sota}
-
-\subsection{Nghiên cứu ngoài nước}
-\label{subsec:intro:sota:global}
-
-\subsubsection*{Gây nhiễu và chống gây nhiễu trong mạng không dây}
-
-Grover và cộng sự~\cite{grover2014jamming} trình bày khảo sát toàn diện về các kỹ thuật
-jamming và anti-jamming trong mạng không dây, bao gồm phân loại hình thức tấn công (spot,
-sweep, barrage, deceptive jammer), đánh giá tác động lên hiệu năng hệ thống và so sánh các
-giải pháp phòng thủ từ lớp vật lý đến giao thức MAC. Pelechrinis và cộng sự~\cite{pelechrinis2011dos}
-phân tích sâu bản chất của các tấn công DoS do jamming, cung cấp tiêu chí phân loại và khung
-so sánh hiệu quả các kỹ thuật phòng thủ, đặt nền tảng học thuật cho nhiều nghiên cứu tiếp theo.
-
-\subsubsection*{Ứng dụng học tăng cường sâu trong chống gây nhiễu}
-
-Van Huynh và cộng sự~\cite{huynh2019jam} là nhóm tiên phong đề xuất kết hợp Ambient
-Backscatter với Deep Dueling Neural Network để chống jamming. Phương pháp cho phép hệ thống
-học chiến lược lựa chọn kênh và điều chỉnh hệ số phản xạ tối ưu thông qua tương tác với
-môi trường, đạt được hiệu năng vượt trội so với các phương pháp truyền thống. Liu và cộng
-sự~\cite{liu2018antijamming} ứng dụng DRL với đặc trưng hình ảnh phổ thay đổi theo thời
-gian-tần số (spectrum waterfall) để nhận diện và thích ứng với các dạng jamming đa dạng trong
-thời gian thực. Dang và cộng sự~\cite{dang2024ppo} đề xuất thuật toán PPO (Proximal Policy
-Optimization) giúp hệ thống tự học chính sách lựa chọn kênh và chiến lược điều chế tối ưu
-trong môi trường jamming biến đổi liên tục. Mặc dù đạt kết quả tốt, ba nghiên cứu này đều
-giải quyết bài toán đơn tác tử (single-agent), chưa khai thác được khả năng hợp tác phối
-hợp giữa nhiều thiết bị.
-
-\subsubsection*{UAV trong mạng truyền thông không dây}
-
-Gu và Zhang~\cite{gu2023uav} cung cấp khảo sát toàn diện về ứng dụng UAV hỗ trợ truyền
-thông không dây, bao gồm tối ưu quỹ đạo, phân bổ tài nguyên, thiết kế giao thức và các xu
-hướng nghiên cứu mới nhất. Wang và cộng sự~\cite{wang2023uavjamming} phân tích khả năng
-chống jamming của hệ thống UAV, đề xuất mô hình vùng phần thưởng tương tác (IRR) cho phép
-tối ưu đồng thời công suất phát và quỹ đạo bay, mở rộng phạm vi bảo vệ hợp lệ. Ma và cộng
-sự~\cite{ma2022rl} đề xuất khung điều khiển công suất chống jamming động dựa trên DDPG, ước
-lượng cường độ tín hiệu nhiễu hiệu quả bằng Kernel Density Estimation (KDE), đồng thời thiết
-kế quỹ đạo UAV theo phân cụm người dùng K-means++. Duo và cộng sự~\cite{duo2020antijamming3d}
-tập trung thiết kế quỹ đạo 3D chống jamming cho mạng cảm biến không dây với kênh LoS xác
-suất, tối đa hóa tốc độ kỳ vọng tối thiểu qua thuật toán tối ưu lồi liên tiếp. Các phương
-pháp trên tuy đạt kết quả tốt nhưng đều dựa vào đơn UAV đơn tác tử hoặc quy tắc tĩnh, thiếu
-khả năng học hợp tác đa UAV.
-
-Liên quan trực tiếp nhất đến đề tài là công trình IA-MADDPG gốc~\cite{iamaddpg2024}, đề xuất
-framework kết hợp imitation learning với MADDPG cho mạng D2D AmBC chống jamming với relay
-RBS cố định. Công trình chứng minh hiệu quả rõ rệt của việc warm-up replay buffer bằng expert
-policy và áp dụng behavior cloning để ổn định quá trình hội tụ trong bài toán đa tác tử, mở
-ra nền tảng lý thuyết và thực nghiệm cho hướng mở rộng mà đề tài này theo đuổi.
-
-\subsection{Nghiên cứu trong nước}
-\label{subsec:intro:sota:vietnam}
-
-Tại Việt Nam, nghiên cứu về mạng UAV hiện tập trung chủ yếu vào các ứng dụng thực tiễn:
-giám sát biên giới và quản lý không phận, hỗ trợ tìm kiếm cứu nạn, giám sát hạ tầng và
-nông nghiệp thông minh \cite{hang2023uav, vohoa2023uav}. Viettel High Tech đã triển khai
-nhiều mẫu UAV trinh sát phục vụ quốc phòng, trong khi các tổ chức như VNPT và Học viện Kỹ
-thuật Quân sự nghiên cứu kết nối UAV với vệ tinh nhằm mở rộng phạm vi liên lạc trong địa
-hình phức tạp \cite{viettel2025uav}.
-
-Tuy nhiên, số lượng công bố quốc tế về tối ưu hóa kiến trúc mạng UAV, phân bổ tài nguyên
-vô tuyến và bảo mật lớp vật lý trong bối cảnh Việt Nam còn rất hạn chế. Đặc biệt, chưa có
-nghiên cứu trong nước nào đề cập đến việc kết hợp Ambient Backscatter, UAV relay và học
-tăng cường đa tác tử trong một framework thống nhất chống gây nhiễu. Đây là khoảng trắng
-nghiên cứu đáng chú ý, nhất là trong bối cảnh Việt Nam đang đẩy mạnh hạ tầng số quốc gia
-và phát triển các công nghệ IoT nội địa.
-
-\section{Khoảng trống nghiên cứu và đề xuất giải pháp}
-\label{sec:intro:gap}
-
-Phân tích tổng quan tài liệu làm rõ bốn khoảng trống nghiên cứu chính:
-
-\textbf{Khoảng trống thứ nhất --- Mô hình đơn tác tử.}
-Hầu hết các nghiên cứu DRL chống jamming cho UAV \cite{wang2023uavjamming, ma2022rl,
-duo2020antijamming3d} chỉ xét bài toán một UAV (single-agent), bỏ qua khả năng hợp tác và
-phân công vai trò giữa nhiều UAV và nhiều thiết bị SU trong mạng lớn hơn. Khi số lượng cặp
-SU--DU tăng lên, một UAV duy nhất không thể phục vụ hiệu quả toàn bộ mạng.
-
-\textbf{Khoảng trống thứ hai --- Chưa khai thác năng lượng jamming.}
-Các nghiên cứu UAV chống jamming hiện tại \cite{wang2023uavjamming, ma2022rl,
-duo2020antijamming3d} coi tín hiệu jamming thuần túy là nhiễu cần né tránh, chưa tích hợp
-cơ chế Ambient Backscatter để biến năng lượng RF của jammer thành tài nguyên truyền thông.
-Sự kết hợp UAV relay với AmBC tạo ra một kiến trúc hệ thống hoàn toàn mới chưa được khám
-phá đầy đủ trong tài liệu.
-
-\textbf{Khoảng trống thứ ba --- Bất ổn cold-start trong MARL.}
-MADDPG tiêu chuẩn bị bất ổn cold-start nghiêm trọng khi huấn luyện trong không gian hành
-động liên tục nhiều chiều với nhiều tác tử dị thể (SU và UAV có không gian hành động và
-quan sát khác nhau). Imitation learning kết hợp với MARL dị thể vẫn là hướng nghiên cứu
-còn nhiều tiềm năng khám phá.
-
-\textbf{Khoảng trống thứ tư --- Critic không khai thác cấu trúc đồ thị.}
-Critic MLP truyền thống trong MADDPG coi toàn bộ quan sát như một vector phẳng, không nắm
-bắt được cấu trúc topo đồ thị kết nối UAV--SU (biến đổi theo thời gian khi UAV di chuyển)
-và tương quan không gian giữa các tác tử. Điều này dẫn đến ước lượng giá trị Q kém chính
-xác, làm chậm tốc độ hội tụ.
-
-Để lấp đầy các khoảng trống trên, đề tài đề xuất framework \textbf{IA-MADDPG với
-Transformer-GAT Centralized Critic} cho bài toán mạng D2D AmBC chống jamming có hỗ trợ
-UAV relay động. Framework tích hợp đồng thời: (i) $K = 2$ UAV relay di động 3D bên cạnh
-RBS cố định; (ii) khai thác năng lượng jamming qua AmBC với ba chế độ truyền linh hoạt;
-(iii) expert policy để warm-up replay buffer và behavior cloning để ổn định giai đoạn đầu
-huấn luyện; (iv) Transformer encoder xử lý quan sát đa tác tử dưới điều kiện thông tin
-không đầy đủ; và (v) Graph Attention Network mã hóa cấu trúc đồ thị UAV--SU trong
-centralized critic.
-
-\section{Đóng góp của đề tài}
-\label{sec:intro:contributions}
-
-Đề tài đóng góp năm điểm mới có giá trị học thuật và thực tiễn:
-
-\begin{enumerate}
-
-  \item \textbf{Mô hình hệ thống tích hợp UAV relay động và Ambient Backscatter.}
-  Đề xuất và phân tích mô hình mạng D2D AmBC gồm $N$ cặp SU--DU mặt đất, $K$ UAV relay
-  di động, một RBS cố định và một jammer mặt đất liên tục trong khu vực $200 \times 200\,$m$^2$.
-  Hệ thống khai thác tín hiệu jamming làm RF excitation cho Ambient Backscatter, với ba chế
-  độ truyền linh hoạt cùng mô hình kênh Rayleigh mặt đất và kênh LoS xác suất không-đất.
-
-  \item \textbf{Phát biểu bài toán Dec-POMDP đa tác tử dị thể.}
-  Công thức hóa bài toán tối ưu liên hợp --- hệ số phản xạ $\alpha_i$, lựa chọn chế độ
-  truyền $m_i$ (rời rạc) và quỹ đạo UAV 3D $\Delta\mathbf{p}_{U_k}$ (liên tục) --- dưới
-  dạng Dec-POMDP với $N + K$ tác tử dị thể, không gian quan sát cục bộ khác nhau và không
-  gian hành động lai (liên tục và rời rạc hỗn hợp).
-
-  \item \textbf{Transformer-GAT Centralized Critic.}
-  Thiết kế kiến trúc critic mới thay thế MLP truyền thống: bộ mã hóa Transformer khai thác
-  cơ chế self-attention để tổng hợp ngữ cảnh toàn cục từ quan sát của tất cả tác tử trong
-  điều kiện thông tin không đầy đủ; Graph Attention Network (GAT) mã hóa cấu trúc đồ thị
-  kết nối UAV--SU động, nắm bắt các phụ thuộc không gian và topo mạng tức thời.
-
-  \item \textbf{Expert policy cho UAV agent và giao thức warm-up IA-MADDPG mở rộng.}
-  Xây dựng thuật toán heuristic vị trí UAV dựa trên thông tin kênh đầy đủ (full CSI), làm
-  expert policy cho giai đoạn warm-up replay buffer, kết hợp với behavior cloning loss có
-  hệ số annealing $\lambda_{\mathrm{IL}}$ để ổn định huấn luyện và đạt hội tụ nhanh hơn so
-  với MADDPG tiêu chuẩn.
-
-  \item \textbf{Đánh giá toàn diện và nghiên cứu ablation.}
-  Thực hiện mô phỏng Python so sánh định lượng với năm phương pháp baseline (truyền thẳng
-  DT, Greedy SINR, nhảy tần FH, MADDPG tiêu chuẩn, IA-MADDPG gốc không có UAV) trên các
-  chỉ số phần thưởng mạng, TSR, thông lượng, hiệu quả năng lượng và quỹ đạo UAV; đồng thời
-  thực hiện nghiên cứu ablation định lượng đóng góp độc lập của từng thành phần đề xuất.
-
-\end{enumerate}
-
-\section{Cấu trúc báo cáo}
-\label{sec:intro:structure}
-
-Phần còn lại của báo cáo được tổ chức thành năm chương như sau.
-
-\textbf{Chương~\ref{chap:background} --- Cơ sở lý thuyết} trình bày các kiến thức nền tảng
-cần thiết, bao gồm nguyên lý và phân loại truyền thông Backscatter (monostatic, bistatic,
-ambient), mô hình tấn công jamming và các kỹ thuật chống nhiễu truyền thống, mô hình kênh
-không-đất của UAV với xác suất LoS, cùng các thuật toán học tăng cường từ DQN, DDPG, TD3
-đến MADDPG, imitation learning, kiến trúc Transformer và Graph Attention Network.
-
-\textbf{Chương~\ref{chap:system} --- Mô hình hệ thống và bài toán tối ưu} xây dựng chi tiết
-mô hình mạng với tất cả thành phần, mô hình kênh Rayleigh và A2G xác suất LoS, biểu thức
-SINR cho ba chế độ truyền, thiết kế hàm phần thưởng composite, và phát biểu chính thức bài
-toán tối ưu dưới dạng Dec-POMDP với đầy đủ không gian quan sát, hành động và ràng buộc.
-
-\textbf{Chương~\ref{chap:algorithm} --- Thuật toán IA-MADDPG với Transformer-GAT Critic}
-trình bày kiến trúc chi tiết của framework đề xuất: cấu trúc Actor cho SU agent và UAV
-agent, thiết kế Transformer-GAT Centralized Critic, quy trình hai giai đoạn (expert warm-up
-và behavior cloning với annealing), các kỹ thuật hỗ trợ (PER, TD3 smoothing, xử lý không
-gian hành động lai), pseudocode thuật toán đầy đủ và phân tích độ phức tạp.
-
-\textbf{Chương~\ref{chap:simulation} --- Thiết lập mô phỏng và đánh giá hiệu năng} mô tả
-môi trường mô phỏng Python, tham số hệ thống và huấn luyện, cách cài đặt năm phương pháp
-baseline, và trình bày toàn bộ kết quả thực nghiệm bao gồm đường cong hội tụ, so sánh phần
-thưởng, thông lượng, TSR, phân phối chế độ truyền, quỹ đạo UAV và nghiên cứu ablation.
-
-\textbf{Chương~\ref{chap:conclusion} --- Kết luận và hướng phát triển} tổng kết các đóng
-góp, phân tích hạn chế hiện tại và đề xuất các hướng nghiên cứu tiếp theo gồm: CSI không
-hoàn hảo, jammer di động, đa jammer, nguồn năng lượng dị thể và triển khai quy mô lớn.
-
-
-% ============================================================
-\chapter{Cơ sở lý thuyết}
-\label{chap:background}
-% ============================================================
-
-\section{Truyền thông Backscatter}
-\label{sec:bg:backscatter}
-
-\subsection{Nguyên lý hoạt động của Backscatter}
-\label{subsec:bg:backscatter:principle}
-% Phân biệt passive tag và active reader.
-% Hệ số phản xạ alpha, modulation bằng load impedance.
-
-\subsection{Phân loại: Monostatic, Bistatic, Ambient}
-\label{subsec:bg:backscatter:types}
-% Mô tả và so sánh ba paradigm.
-% Giải thích lý do chọn Ambient (AmBC) cho bài toán này.
-
-\subsection{Mô hình tín hiệu Ambient Backscatter}
-\label{subsec:bg:backscatter:signal}
-% Phương trình tín hiệu nhận tại DU trong điều kiện jamming.
-% Phân tích SINR cho backscatter.
-
-\section{Tấn công Gây nhiễu vô tuyến (Jamming)}
-\label{sec:bg:jamming}
-
-\subsection{Phân loại kỹ thuật jamming}
-\label{subsec:bg:jamming:types}
-% Spot jammer, sweep jammer, barrage jammer, smart jammer.
-
-\subsection{Mô hình jammer trong bài toán}
-\label{subsec:bg:jamming:model}
-% Ground-level constant-power jammer, ảnh hưởng đến SINR.
-
-\subsection{Kỹ thuật chống gây nhiễu truyền thống}
-\label{subsec:bg:antijamming:traditional}
-% Frequency hopping, spread spectrum, power control.
-% Hạn chế: phản ứng chậm, không tận dụng năng lượng jamming.
-
-\section{Truyền thông D2D (Device-to-Device)}
-\label{sec:bg:d2d}
-
-\subsection{Kiến trúc và ưu điểm D2D}
-\label{subsec:bg:d2d:arch}
-
-\subsection{Thách thức D2D dưới môi trường jamming}
-\label{subsec:bg:d2d:challenge}
-
-\section{UAV trong mạng truyền thông không dây}
-\label{sec:bg:uav}
-
-\subsection{Phân loại và đặc tính UAV}
-\label{subsec:bg:uav:classification}
-
-\subsection{Mô hình kênh Air-to-Ground (A2G)}
-\label{subsec:bg:uav:channel}
-% Probabilistic LoS model (ITU-R), tổn hao trung bình.
-
-\subsection{UAV làm relay động}
-\label{subsec:bg:uav:relay}
-% Decode-and-forward relay, energy model, kinematics.
-
-\section{Học tăng cường (Reinforcement Learning)}
-\label{sec:bg:rl}
-
-\subsection{Markov Decision Process (MDP)}
-\label{subsec:bg:rl:mdp}
-% State, action, reward, transition, discount factor.
-
-\subsection{Deep Q-Network (DQN)}
-\label{subsec:bg:rl:dqn}
-
-\subsection{Actor-Critic và DDPG}
-\label{subsec:bg:rl:ddpg}
-% Policy gradient, deterministic policy, replay buffer, target network.
-
-\subsection{TD3 (Twin Delayed DDPG)}
-\label{subsec:bg:rl:td3}
-% Clipped double Q-learning, delayed policy update, target smoothing.
-
-\section{Học tăng cường Đa tác tử (MARL)}
-\label{sec:bg:marl}
-
-\subsection{Dec-POMDP và CTDE}
-\label{subsec:bg:marl:decpomdp}
-
-\subsection{MADDPG}
-\label{subsec:bg:marl:maddpg}
-% Centralized critic, decentralized actor.
-
-\subsection{Imitation Learning và Behavior Cloning}
-\label{subsec:bg:marl:il}
-% Supervised BC loss, lambda annealing, expert warm-up.
-
-\section{Transformer và Graph Attention Network}
-\label{sec:bg:transformer-gat}
-
-\subsection{Self-Attention Mechanism và Transformer Encoder}
-\label{subsec:bg:transformer}
-
-\subsection{Graph Neural Network và Graph Attention (GAT)}
-\label{subsec:bg:gat}
-% Multi-head attention trên đồ thị, message passing.
-
-\subsection{Transformer-GAT trong Multi-Agent RL}
-\label{subsec:bg:tmac}
-% TMAC-style encoder; lý do kết hợp Transformer + GAT cho multi-UAV.
-
-\section{Tổng kết chương}
-\label{sec:bg:summary}
-
-
-% ============================================================
-\chapter{Mô hình Hệ thống và Bài toán Tối ưu}
-\label{chap:system}
-% ============================================================
-
-\section{Kiến trúc mạng}
-\label{sec:sys:architecture}
-
-\subsection{Các thành phần mạng}
-\label{subsec:sys:entities}
-% Bảng: SU_i, DU_i, RBS, UAV U_k, Jammer J.
-% Hình minh họa topo mạng 2D.
-
-\subsection{Cấu hình triển khai và ràng buộc vật lý}
-\label{subsec:sys:deployment}
-% Diện tích 200x200 m², N=5 cặp, K=2 UAV, 1 jammer.
-% Ràng buộc độ cao, tốc độ bay, năng lượng UAV.
-
-\section{Mô hình tín hiệu Backscatter}
-\label{sec:sys:signal}
-
-\subsection{Nguyên lý khai thác năng lượng jamming}
-\label{subsec:sys:signal:harvest}
-% Jammer làm RF excitation cho AmBC.
-
-\subsection{Phương trình tín hiệu nhận và hệ số phản xạ}
-\label{subsec:sys:signal:eq}
-% y_{D_i} = sqrt(P_J) h_{J,S_i} h_{S_i,D_i} alpha_i x + n
-
-\section{Mô hình kênh truyền}
-\label{sec:sys:channel}
-
-\subsection{Kênh mặt đất (Ground-to-Ground): Rayleigh Fading}
-\label{subsec:sys:channel:ground}
-% g_{X,Y} = |h_{X,Y}|^2, h ~ CN(0, d^{-eta}).
-
-\subsection{Kênh không-đất (Air-to-Ground): Probabilistic LoS}
-\label{subsec:sys:channel:a2g}
-% P_LoS(theta), L_LoS, L_NLoS, bar{g}_{U_k,X}.
-
-\subsection{Tổn hao đường truyền trung bình}
-\label{subsec:sys:channel:pathloss}
-
-\section{Các chế độ truyền thông}
-\label{sec:sys:modes}
-
-\subsection{Mode 0 --- Truyền thẳng D2D}
-\label{subsec:sys:mode0}
-% SINR gamma_i^{D2D}, điều kiện áp dụng.
-
-\subsection{Mode 1 --- Relay qua RBS cố định}
-\label{subsec:sys:mode1}
-% SINR gamma_i^{RBS} = min(hop1, hop2), bottleneck phân tích.
-
-\subsection{Mode 2 --- Relay qua UAV di động}
-\label{subsec:sys:mode2}
-% SINR gamma_i^{UAV} với bar{g} A2G, ưu điểm so với Mode 1.
-
-\subsection{So sánh hiệu năng theo mode trong các kịch bản}
-\label{subsec:sys:mode:compare}
-% Bảng so sánh: close, far, RBS-far, LoS blocked.
-
-\section{Phát biểu bài toán tối ưu}
-\label{sec:sys:optimization}
-
-\subsection{Biến quyết định}
-\label{subsec:sys:opt:vars}
-% alpha_i, m_i, Delta p_{U_k}.
-
-\subsection{Hàm phần thưởng composite}
-\label{subsec:sys:opt:reward}
-% r_i = w1*log(1+gamma) + w2*tanh(...) - w3*alpha^2 - w4*E_move
-% Phân tích từng số hạng và tác dụng thiết kế.
-
-\subsection{Hàm phần thưởng UAV positioning}
-\label{subsec:sys:opt:uav-reward}
-% r_{U_k}^{pos} = sum Delta gamma_i - w4 * norm(Delta p)
-
-\subsection{Hàm mục tiêu và ràng buộc đầy đủ}
-\label{subsec:sys:opt:objective}
-% max E[sum_t sum_i r_i(t)]
-% Liệt kê toàn bộ ràng buộc.
-
-\section{Mô hình hoá Dec-POMDP Đa tác tử}
-\label{sec:sys:pomdp}
-
-\subsection{Không gian trạng thái toàn cục}
-\label{subsec:sys:pomdp:state}
-
-\subsection{Không gian quan sát cục bộ}
-\label{subsec:sys:pomdp:obs}
-% o_i cho SU, o_{U_k} cho UAV.
-
-\subsection{Không gian hành động}
-\label{subsec:sys:pomdp:action}
-% Hybrid (SU): continuous alpha + discrete m.
-% Continuous (UAV): (Delta x, Delta y, Delta z).
-
-\subsection{Hàm phần thưởng toàn cục cho Centralized Critic}
-\label{subsec:sys:pomdp:global-reward}
-
-\subsection{Tính không hoàn hảo của thông tin (Partial Observability)}
-\label{subsec:sys:pomdp:partial}
-
-\section{Tổng kết chương}
-\label{sec:sys:summary}
-
-
-% ============================================================
-\chapter{Thuật toán IA-MADDPG với Transformer-GAT Critic}
-\label{chap:algorithm}
-% ============================================================
-
-\section{Tổng quan framework đề xuất}
-\label{sec:alg:overview}
-% Sơ đồ khối toàn bộ framework, so sánh với IA-MADDPG gốc.
-
-\section{Kiến trúc mạng Neural}
-\label{sec:alg:architecture}
-
-\subsection{Kiến trúc Actor cho SU Agent}
-\label{subsec:alg:actor:su}
-% MLP [256, 256, 128]; output layer: sigmoid(alpha), Gumbel-softmax(m).
-
-\subsection{Kiến trúc Actor cho UAV Agent}
-\label{subsec:alg:actor:uav}
-% MLP [256, 256, 128]; output layer: tanh * v_max cho Delta p.
-
-\subsection{Transformer-GAT Centralized Critic}
-\label{subsec:alg:critic:tgat}
-
-\subsubsection{Transformer Encoder cho Quan sát Đa tác tử}
-\label{subsubsec:alg:critic:transformer}
-% Multi-head self-attention trên tập quan sát {o_1,...,o_N, o_U1,...,o_UK}.
-% Mã hoá chuỗi agent thành context vector.
-
-\subsubsection{Graph Attention Network cho Topo UAV--SU}
-\label{subsubsec:alg:critic:gat}
-% Xây dựng đồ thị: node = agent, edge weight = channel gain.
-% GAT message passing để tổng hợp thông tin topo.
-
-\subsubsection{Kết hợp Transformer + GAT trong Critic}
-\label{subsubsec:alg:critic:combine}
-% Concatenate Transformer context + GAT output -> MLP -> Q-value.
-
-\subsubsection{Double Q-learning (TD3 style)}
-\label{subsubsec:alg:critic:double}
-
-\section{Giai đoạn 1: Expert Warm-Up (Pre-Population)}
-\label{sec:alg:warmup}
-
-\subsection{Expert Policy cho SU Agent}
-\label{subsec:alg:expert:su}
-% Greedy: chọn mode và alpha tối đa SINR tức thời với full CSI.
-
-\subsection{Expert Policy cho UAV Agent}
-\label{subsec:alg:expert:uav}
-% Heuristic: di chuyển về vị trí tối đa sum SINR của SU trong cluster C_k.
-% Phân tích thuật toán heuristic và complexity.
-
-\subsection{Pre-population Replay Buffer}
-\label{subsec:alg:expert:buffer}
-% Số lượng expert transitions, ảnh hưởng đến cold-start.
-
-\section{Giai đoạn 2: Behavior Cloning Regularization}
-\label{sec:alg:bc}
-
-\subsection{Loss Function kết hợp MADDPG + BC}
-\label{subsec:alg:bc:loss}
-% L = L_{MADDPG} + lambda_IL * L_{BC}
-% Phân tích gradient flow.
-
-\subsection{Lambda Annealing Schedule}
-\label{subsec:alg:bc:anneal}
-% lambda(t) = lambda_0 * decay^t; điều kiện dừng annealing.
-
-\section{Các kỹ thuật hỗ trợ}
-\label{sec:alg:supporting}
-
-\subsection{Prioritized Experience Replay (PER)}
-\label{subsec:alg:per}
-% TD-error priority, importance sampling weights, sum-tree data structure.
-
-\subsection{Target Policy Smoothing (TD3)}
-\label{subsec:alg:td3}
-% Clipped Gaussian noise trên target action, delayed policy update.
-
-\subsection{Xử lý hành động lai (Hybrid Action Space)}
-\label{subsec:alg:hybrid}
-% Continuous alpha qua tanh; discrete m qua Gumbel-Softmax straight-through.
-
-\subsection{Curriculum Learning (Tùy chọn)}
-\label{subsec:alg:curriculum}
-% Tăng dần Gamma_th trong quá trình training.
-
-\section{Quy trình huấn luyện đầy đủ}
-\label{sec:alg:training}
-% Algorithm box: pseudocode toàn bộ training loop.
-% Mô tả từng bước: collect, store, sample, update critic, update actor.
-
-\section{Phân tích độ phức tạp}
-\label{sec:alg:complexity}
-% Time complexity: O(N+K) per step; Space: replay buffer size.
-% Scalability khi tăng N và K.
-
-\section{Tổng kết chương}
-\label{sec:alg:summary}
-
-
-% ============================================================
-\chapter{Thiết lập Mô phỏng và Đánh giá Hiệu năng}
-\label{chap:simulation}
-% ============================================================
-
-\section{Thiết lập môi trường mô phỏng}
-\label{sec:sim:setup}
-
-\subsection{Tham số hệ thống}
-\label{subsec:sim:params}
-% Bảng đầy đủ: diện tích, N=5, K=2, P_J, N_0, G, eta, H_range, v_max, Gamma_th.
-
-\subsection{Tham số huấn luyện}
-\label{subsec:sim:training-params}
-% Episodes=600, steps/episode=200, batch=256, lr, decay, weights w1..w4.
-
-\subsection{Kiến trúc mạng Neural chi tiết}
-\label{subsec:sim:nn-arch}
-% Actor SU/UAV: [256,256,128]; Critic: [512,256,128,64].
-% Số tham số, activation functions.
-
-\subsection{Môi trường Python và thư viện}
-\label{subsec:sim:env}
-% Custom gym-like environment, PyTorch, NumPy, Matplotlib.
-
-\section{Các phương pháp baseline so sánh}
-\label{sec:sim:baselines}
-% Bảng: DT, Greedy, FH, MADDPG (no IL), IA-MADDPG (RBS only), đề xuất.
-% Mô tả chi tiết cách implement từng baseline.
-
-\section{Chỉ số đánh giá hiệu năng}
-\label{sec:sim:metrics}
-% bar{r}, TSR, bar{R} (bits/s/Hz), mode distribution,
-% UAV trajectory, convergence speed, energy efficiency.
-
-\section{Kết quả và phân tích}
-\label{sec:sim:results}
-
-\subsection{Tốc độ hội tụ trong huấn luyện}
-\label{subsec:sim:results:convergence}
-% Đường cong reward theo episode cho tất cả phương pháp.
-% IA-MADDPG+UAV hội tụ nhanh hơn nhờ expert warm-up.
-
-\subsection{Tổng phần thưởng mạng}
-\label{subsec:sim:results:reward}
-% Bar chart so sánh trung bình reward sau khi hội tụ.
-
-\subsection{Thông lượng trung bình (Average Throughput)}
-\label{subsec:sim:results:throughput}
-% bits/s/Hz vs. jammer power; vs. số cặp SU-DU.
-
-\subsection{Tỷ lệ truyền thành công (TSR)}
-\label{subsec:sim:results:tsr}
-% TSR vs. Gamma_th threshold; ảnh hưởng của K (số UAV).
-
-\subsection{Phân phối lựa chọn chế độ truyền}
-\label{subsec:sim:results:mode}
-% Pie chart / bar: tỷ lệ D2D / RBS / UAV relay theo kịch bản.
-
-\subsection{Quỹ đạo UAV}
-\label{subsec:sim:results:trajectory}
-% Hình 3D/top-view quỹ đạo UAV trong 1 episode.
-% Phân tích UAV tự điều hướng về vùng tối ưu.
-
-\subsection{Hiệu quả năng lượng}
-\label{subsec:sim:results:energy}
-% Bits per Joule cho các phương pháp; trade-off UAV energy vs. throughput.
-
-\subsection{Ảnh hưởng của Transformer-GAT so với MLP Critic}
-\label{subsec:sim:results:tgat-ablation}
-% So sánh IA-MADDPG+UAV+TGAT vs. IA-MADDPG+UAV+MLP.
-
-\section{Nghiên cứu Ablation}
-\label{sec:sim:ablation}
-
-\subsection{Tác động của Imitation Learning}
-\label{subsec:sim:ablation:il}
-% Loại bỏ BC term -> cold start, convergence chậm hơn.
-
-\subsection{Tác động của UAV Relay}
-\label{subsec:sim:ablation:uav}
-% Không có UAV (RBS only) vs. có UAV.
-
-\subsection{Tác động của PER}
-\label{subsec:sim:ablation:per}
-% Uniform sampling vs. prioritized.
-
-\subsection{Tác động của Transformer-GAT Critic}
-\label{subsec:sim:ablation:tgat}
-% MLP critic vs. GAT critic vs. Transformer-GAT critic.
-
-\subsection{Tác động của số lượng UAV (K)}
-\label{subsec:sim:ablation:kuav}
-% K=1, 2, 3 --- reward và TSR.
-
-\section{Tổng kết chương}
-\label{sec:sim:summary}
-
-
-% ============================================================
-\chapter{Kết luận và Hướng phát triển}
-\label{chap:conclusion}
-% ============================================================
-
-\section{Kết luận}
-\label{sec:conclusion:summary}
-% Tóm tắt lại bài toán, phương pháp, và kết quả chính.
-% Khẳng định đóng góp của từng thành phần.
-
-\section{Hạn chế của nghiên cứu}
-\label{sec:conclusion:limitations}
-% Perfect CSI assumption, single stationary jammer,
-% small-scale simulation (N=5, K=2).
-
-\section{Hướng phát triển tiếp theo}
-\label{sec:conclusion:future}
-% Imperfect CSI và robust optimization.
-% Mobile/smart jammer.
-% Multi-jammer scenario.
-% Heterogeneous energy: solar + battery + jamming harvesting.
-% Large-scale deployment (N>20, K>5) với parameter sharing.
-% Thực nghiệm phần cứng trên UAV thực.
-
-%=============================================================================
-% BACK MATTER
-%=============================================================================
-
+\input{chapters/ch01-gioi-thieu}
+\input{chapters/ch02-co-so-ly-thuyet}
+\input{chapters/ch03-mo-hinh-he-thong}
+\input{chapters/ch04-thuat-toan}
+\input{chapters/ch05-mo-phong}
+\input{chapters/ch06-ket-luan}
+
+% ---- Tài liệu tham khảo ----
 \printbibliography[heading=bibintoc, title={Tài liệu tham khảo}]
 
-%-----------------------------------------------------------------------------
-% PHỤ LỤC
-%-----------------------------------------------------------------------------
-\appendix
-
-\chapter{Chứng minh các công thức SINR}
-\label{app:sinr-proof}
-% Dẫn xuất chi tiết gamma^D2D, gamma^RBS, gamma^UAV.
-
-\chapter{Cấu trúc code mô phỏng}
-\label{app:code}
-% Sơ đồ module Python, dependency graph.
-% Hướng dẫn cài đặt và chạy.
-
-\chapter{Thông số đầy đủ của mô hình Transformer-GAT}
-\label{app:tgat-params}
-% Số head attention, hidden dim, dropout, normalization.
-
-\chapter{Kết quả mô phỏng bổ sung}
-\label{app:extra-results}
-% Các hình vẽ và bảng không đưa vào chương chính.
+% ---- Phụ lục ----
+\input{appendix/appendix}
 
 %=============================================================================
 \end{document}

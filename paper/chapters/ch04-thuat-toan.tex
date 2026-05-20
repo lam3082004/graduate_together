@@ -1,0 +1,99 @@
+% ============================================================
+\chapter{Thuật toán IA-MADDPG với Transformer-GAT Critic}
+\label{chap:algorithm}
+% ============================================================
+
+\section{Tổng quan framework đề xuất}
+\label{sec:alg:overview}
+% Sơ đồ khối toàn bộ framework, so sánh với IA-MADDPG gốc.
+
+\section{Kiến trúc mạng Neural}
+\label{sec:alg:architecture}
+
+\subsection{Kiến trúc Actor cho SU Agent}
+\label{subsec:alg:actor:su}
+% MLP [256, 256, 128]; output layer: sigmoid(alpha), Gumbel-softmax(m).
+
+\subsection{Kiến trúc Actor cho UAV Agent}
+\label{subsec:alg:actor:uav}
+% MLP [256, 256, 128]; output layer: tanh * v_max cho Delta p.
+
+\subsection{Transformer-GAT Centralized Critic}
+\label{subsec:alg:critic:tgat}
+
+\subsubsection{Transformer Encoder cho Quan sát Đa tác tử}
+\label{subsubsec:alg:critic:transformer}
+% Multi-head self-attention trên tập quan sát {o_1,...,o_N, o_U1,...,o_UK}.
+% Mã hoá chuỗi agent thành context vector.
+
+\subsubsection{Graph Attention Network cho Topo UAV--SU}
+\label{subsubsec:alg:critic:gat}
+% Xây dựng đồ thị: node = agent, edge weight = channel gain.
+% GAT message passing để tổng hợp thông tin topo.
+
+\subsubsection{Kết hợp Transformer và GAT}
+\label{subsubsec:alg:critic:combine}
+% Concatenate Transformer context + GAT output -> MLP -> Q-value.
+
+\subsubsection{Double Q-learning kiểu TD3}
+\label{subsubsec:alg:critic:double}
+
+\section{Giai đoạn 1: Expert Warm-Up}
+\label{sec:alg:warmup}
+
+\subsection{Expert Policy cho SU Agent}
+\label{subsec:alg:expert:su}
+% Greedy: chọn mode và alpha tối đa SINR tức thời với full CSI.
+
+\subsection{Expert Policy cho UAV Agent}
+\label{subsec:alg:expert:uav}
+% Heuristic: di chuyển về vị trí tối đa sum SINR của SU trong cluster C_k.
+% Phân tích thuật toán heuristic và complexity.
+
+\subsection{Khởi tạo Replay Buffer}
+\label{subsec:alg:expert:buffer}
+% Số lượng expert transitions, ảnh hưởng đến cold-start.
+
+\section{Giai đoạn 2: Behavior Cloning Regularization}
+\label{sec:alg:bc}
+
+\subsection{Hàm Loss kết hợp MADDPG và BC}
+\label{subsec:alg:bc:loss}
+% L = L_{MADDPG} + lambda_IL * L_{BC}
+% Phân tích gradient flow.
+
+\subsection{Lịch giảm dần Lambda Annealing}
+\label{subsec:alg:bc:anneal}
+% lambda(t) = lambda_0 * decay^t; điều kiện dừng annealing.
+
+\section{Các kỹ thuật hỗ trợ}
+\label{sec:alg:supporting}
+
+\subsection{Prioritized Experience Replay}
+\label{subsec:alg:per}
+% TD-error priority, importance sampling weights, sum-tree data structure.
+
+\subsection{Target Policy Smoothing kiểu TD3}
+\label{subsec:alg:td3}
+% Clipped Gaussian noise trên target action, delayed policy update.
+
+\subsection{Xử lý không gian hành động lai}
+\label{subsec:alg:hybrid}
+% Continuous alpha qua tanh; discrete m qua Gumbel-Softmax straight-through.
+
+\subsection{Curriculum Learning}
+\label{subsec:alg:curriculum}
+% Tăng dần Gamma_th trong quá trình training.
+
+\section{Quy trình huấn luyện đầy đủ}
+\label{sec:alg:training}
+% Algorithm box: pseudocode toàn bộ training loop.
+% Mô tả từng bước: collect, store, sample, update critic, update actor.
+
+\section{Phân tích độ phức tạp}
+\label{sec:alg:complexity}
+% Time complexity: O(N+K) per step; Space: replay buffer size.
+% Scalability khi tăng N và K.
+
+\section{Tổng kết chương}
+\label{sec:alg:summary}

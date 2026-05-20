@@ -1,0 +1,84 @@
+% ============================================================
+%  TÓM TẮT (Tiếng Việt)
+% ============================================================
+\chapter*{Tóm tắt}
+\addcontentsline{toc}{chapter}{Tóm tắt}
+
+\noindent
+\textbf{Từ khóa:} Truyền thông Backscatter Môi trường, chống gây nhiễu, mạng D2D, UAV relay,
+học tăng cường đa tác tử, MADDPG, Imitation Learning, Graph Attention Network, Transformer.
+
+\bigskip
+
+Trong bối cảnh mạng truyền thông thế hệ mới, các thiết bị IoT và người dùng di động mặt đất
+ngày càng đối mặt với nguy cơ bị tấn công gây nhiễu vô tuyến (jamming) có chủ đích, gây suy
+giảm nghiêm trọng chất lượng liên lạc. Đề tài này nghiên cứu bài toán chống gây nhiễu cho mạng
+truyền thông Device-to-Device (D2D) theo hướng tiếp cận mới: thay vì né tránh tín hiệu nhiễu,
+hệ thống \emph{khai thác} năng lượng RF từ tín hiệu gây nhiễu công suất cao làm nguồn kích
+hoạt cho truyền thông Ambient Backscatter (AmBC), đồng thời triển khai các UAV làm relay
+động trong không gian ba chiều nhằm hỗ trợ đường truyền D2D.
+
+Hệ thống gồm $N = 5$ cặp thiết bị nguồn--đích (SU--DU) mặt đất, $K = 2$ UAV relay di động,
+một trạm relay cố định (RBS) và một thiết bị gây nhiễu mặt đất. Mỗi nguồn SU có thể chọn
+một trong ba chế độ truyền: truyền thẳng D2D, relay qua RBS, hoặc relay qua UAV, đồng thời
+điều chỉnh hệ số phản xạ $\alpha_i$. Các UAV tối ưu vị trí 3D theo thời gian nhằm tối đa hóa
+SINR cho các SU trong phạm vi phục vụ.
+
+Bài toán được mô hình hóa là Dec-POMDP đa tác tử gồm $N$ SU agent và $K$ UAV agent, và được
+giải quyết bằng framework \textbf{IA-MADDPG mở rộng} (Imitation-Augmented Multi-Agent DDPG).
+Đóng góp chính của đề tài là thay thế bộ critic MLP truyền thống bằng
+\textbf{Transformer-GAT Centralized Critic}: bộ mã hóa Transformer xử lý quan sát của toàn
+bộ tác tử dưới điều kiện thông tin không đầy đủ, trong khi Graph Attention Network (GAT) khai
+thác cấu trúc đồ thị kết nối UAV--SU để tổng hợp thông tin topo mạng. Expert policy heuristic
+được dùng để khởi động bộ nhớ replay (warm-up) và cung cấp tín hiệu bắt chước (behavior
+cloning) trong giai đoạn đầu huấn luyện, nhờ đó tránh được bất ổn cold-start đặc trưng của
+MARL.
+
+Kết quả mô phỏng trên Python với 600 episode cho thấy phương pháp đề xuất vượt trội so với
+năm baseline về tổng phần thưởng mạng, tỷ lệ truyền thành công (TSR), thông lượng trung
+bình và hiệu quả năng lượng. Nghiên cứu ablation xác nhận đóng góp độc lập của từng thành
+phần: UAV relay, imitation learning, Prioritized Experience Replay, và Transformer-GAT critic.
+
+% ============================================================
+%  TÓM TẮT TIẾNG ANH
+% ============================================================
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+\noindent
+\textbf{Keywords:} truyền thông backscatter môi trường, chống gây nhiễu, mạng D2D,
+UAV relay, học tăng cường sâu đa tác tử, MADDPG, imitation learning,
+mạng chú ý đồ thị, Transformer.
+
+\bigskip
+
+Các mạng truyền thông thế hệ tiếp theo đang đối mặt ngày càng nhiều với các cuộc tấn công gây
+nhiễu vô tuyến (jamming) có chủ đích, làm suy giảm nghiêm trọng chất lượng truyền thông của
+các thiết bị IoT giới hạn năng lượng và người dùng di động mặt đất. Đề tài này nghiên cứu
+bài toán chống gây nhiễu trong mạng truyền thông Device-to-Device (D2D) từ một góc nhìn
+mới: thay vì né tránh tín hiệu jamming, hệ thống chủ động \emph{khai thác} năng lượng RF
+từ tín hiệu nhiễu công suất cao làm nguồn kích hoạt cho truyền thông Ambient Backscatter
+(AmBC), đồng thời triển khai các UAV làm relay động ba chiều để hỗ trợ đường truyền D2D.
+
+Mô hình hệ thống gồm $N = 5$ cặp thiết bị nguồn--đích (SU--DU) mặt đất, $K = 2$ UAV relay
+di động, một trạm relay cố định (RBS) và một thiết bị gây nhiễu mặt đất liên tục. Mỗi thiết
+bị nguồn lựa chọn một trong ba chế độ truyền theo từng khe thời gian --- truyền thẳng D2D,
+relay qua RBS, hoặc relay qua UAV --- đồng thời điều chỉnh hệ số phản xạ~$\alpha_i$. Các UAV
+điều chỉnh vị trí 3D liên tục nhằm tối đa hóa SINR cho các thiết bị SU trong phạm vi phục vụ.
+
+Bài toán tối ưu liên hợp được phát biểu dưới dạng Quá trình Quyết định Markov Phi Tập
+trung Quan sát Một phần (Dec-POMDP) với $N$ SU agent và $K$ UAV agent, và được giải quyết
+bằng framework mở rộng \textbf{IA-MADDPG} (Imitation-Augmented MADDPG). Đóng góp trung tâm
+của đề tài là thay thế critic MLP truyền thống bằng \textbf{Transformer-GAT Centralized Critic}
+mới: bộ mã hóa Transformer tổng hợp quan sát đa tác tử trong điều kiện thông tin không đầy
+đủ, trong khi Graph Attention Network (GAT) mã hóa đồ thị topo UAV--SU để nắm bắt các phụ
+thuộc không gian giữa các tác tử. Ngoài ra, expert policy được sử dụng để khởi tạo trước
+bộ nhớ replay (warm-up) và cung cấp giám sát behavior cloning trong giai đoạn đầu huấn
+luyện, loại bỏ bất ổn cold-start đặc trưng của MARL. Các kỹ thuật bổ sung bao gồm Prioritized
+Experience Replay (PER) và làm mịn chính sách mục tiêu theo kiểu TD3.
+
+Kết quả mô phỏng Python qua 600 episode huấn luyện cho thấy phương pháp đề xuất vượt trội
+so với năm phương pháp baseline trên toàn bộ chỉ số đánh giá: phần thưởng mạng, tỷ lệ
+truyền thành công (TSR), thông lượng trung bình, hiệu quả lựa chọn chế độ và hiệu quả
+năng lượng. Nghiên cứu ablation định lượng đóng góp độc lập của UAV relay, imitation
+learning, PER và Transformer-GAT critic.

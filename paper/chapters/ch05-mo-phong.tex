@@ -1,0 +1,82 @@
+% ============================================================
+\chapter{Thiết lập Mô phỏng và Đánh giá Hiệu năng}
+\label{chap:simulation}
+% ============================================================
+
+\section{Thiết lập môi trường mô phỏng}
+\label{sec:sim:setup}
+
+\subsection{Tham số hệ thống}
+\label{subsec:sim:params}
+% Bảng đầy đủ: diện tích, N=5, K=2, P_J, N_0, G, eta, H_range, v_max, Gamma_th.
+
+\subsection{Tham số huấn luyện}
+\label{subsec:sim:training-params}
+% Episodes=600, steps/episode=200, batch=256, lr, decay, weights w1..w4.
+
+\subsection{Kiến trúc mạng Neural chi tiết}
+\label{subsec:sim:nn-arch}
+% Actor SU/UAV: [256,256,128]; Critic: [512,256,128,64].
+% Số tham số, activation functions.
+
+\subsection{Môi trường Python và thư viện}
+\label{subsec:sim:env}
+% Custom gym-like environment, PyTorch, NumPy, Matplotlib.
+
+\section{Các phương pháp baseline so sánh}
+\label{sec:sim:baselines}
+% Bảng: DT, Greedy, FH, MADDPG (no IL), IA-MADDPG (RBS only), đề xuất.
+% Mô tả chi tiết cách implement từng baseline.
+
+\section{Chỉ số đánh giá hiệu năng}
+\label{sec:sim:metrics}
+% bar{r}, TSR, bar{R} (bits/s/Hz), mode distribution,
+% UAV trajectory, convergence speed, energy efficiency.
+
+\section{Kết quả và phân tích}
+\label{sec:sim:results}
+
+\subsection{Tốc độ hội tụ trong huấn luyện}
+\label{subsec:sim:results:convergence}
+
+\subsection{Tổng phần thưởng mạng}
+\label{subsec:sim:results:reward}
+
+\subsection{Thông lượng trung bình}
+\label{subsec:sim:results:throughput}
+
+\subsection{Tỷ lệ truyền thành công}
+\label{subsec:sim:results:tsr}
+
+\subsection{Phân phối lựa chọn chế độ truyền}
+\label{subsec:sim:results:mode}
+
+\subsection{Quỹ đạo UAV}
+\label{subsec:sim:results:trajectory}
+
+\subsection{Hiệu quả năng lượng}
+\label{subsec:sim:results:energy}
+
+\subsection{Ảnh hưởng của Transformer-GAT so với MLP Critic}
+\label{subsec:sim:results:tgat-ablation}
+
+\section{Nghiên cứu Ablation}
+\label{sec:sim:ablation}
+
+\subsection{Tác động của Imitation Learning}
+\label{subsec:sim:ablation:il}
+
+\subsection{Tác động của UAV Relay}
+\label{subsec:sim:ablation:uav}
+
+\subsection{Tác động của PER}
+\label{subsec:sim:ablation:per}
+
+\subsection{Tác động của Transformer-GAT Critic}
+\label{subsec:sim:ablation:tgat}
+
+\subsection{Tác động của số lượng UAV}
+\label{subsec:sim:ablation:kuav}
+
+\section{Tổng kết chương}
+\label{sec:sim:summary}
