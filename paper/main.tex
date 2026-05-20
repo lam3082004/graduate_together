@@ -1,0 +1,769 @@
+%=============================================================================
+% ĐHQGHN - Trường Đại học Công nghệ
+% Đồ án tốt nghiệp đại học
+%=============================================================================
+\documentclass[12pt, a4paper, twoside]{report}
+
+%-----------------------------------------------------------------------------
+% Encoding & Language
+%-----------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese,english]{babel}
+\usepackage{indentfirst}
+
+%-----------------------------------------------------------------------------
+% Typography & Layout
+%-----------------------------------------------------------------------------
+\usepackage[
+  top=3cm, bottom=3cm,
+  left=3.5cm, right=2.5cm,
+  headheight=15pt
+]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{microtype}
+\usepackage{lmodern}
+
+%-----------------------------------------------------------------------------
+% Mathematics
+%-----------------------------------------------------------------------------
+\usepackage{amsmath, amssymb, amsfonts, amsthm}
+\usepackage{mathtools}
+\usepackage{bm}
+\usepackage{cases}
+
+%-----------------------------------------------------------------------------
+% Figures, Tables, Algorithms
+%-----------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subfigure}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor}
+
+%-----------------------------------------------------------------------------
+% References & Hyperlinks
+%-----------------------------------------------------------------------------
+\usepackage[
+  backend=biber,
+  style=ieee,
+  sorting=none,
+  maxbibnames=99
+]{biblatex}
+\addbibresource{references.bib}
+
+\usepackage[
+  colorlinks=false,
+  hidelinks,
+  bookmarks=true,
+  bookmarksnumbered=true,
+  pdftitle={UAV-Assisted Ambient Backscatter Anti-Jamming with Transformer-GAT IA-MADDPG},
+  pdfauthor={Nguyen The Vinh, Bui Tung Lam}
+]{hyperref}
+\usepackage{cleveref}
+
+%-----------------------------------------------------------------------------
+% Header / Footer
+%-----------------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE,RO]{\thepage}
+\fancyhead[RE]{\leftmark}
+\fancyhead[LO]{\rightmark}
+\renewcommand{\headrulewidth}{0.4pt}
+
+%-----------------------------------------------------------------------------
+% Chapter Heading Style
+%-----------------------------------------------------------------------------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{40pt}
+
+%-----------------------------------------------------------------------------
+% Custom Commands
+%-----------------------------------------------------------------------------
+\newcommand{\bs}[1]{\boldsymbol{#1}}
+\newcommand{\set}[1]{\mathcal{#1}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\sinr}{\text{SINR}}
+\newcommand{\snr}{\text{SNR}}
+
+% Theorem-like environments
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%=============================================================================
+\begin{document}
+%=============================================================================
+
+%-----------------------------------------------------------------------------
+% TITLE PAGE
+%-----------------------------------------------------------------------------
+\begin{titlepage}
+\begin{center}
+
+{\large \textbf{ĐẠI HỌC QUỐC GIA HÀ NỘI}}\\[0.2cm]
+{\large \textbf{TRƯỜNG ĐẠI HỌC CÔNG NGHỆ}}\\[0.2cm]
+{\large \textbf{KHOA ĐIỆN TỬ VIỄN THÔNG}}\\[1.5cm]
+
+\includegraphics[width=3.5cm]{uet_logo.png}\\[1.5cm]
+
+{\Large \textbf{ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC}}\\[0.5cm]
+{\large Ngành: Công nghệ Kỹ thuật Điện tử - Viễn thông}\\[1.5cm]
+
+\rule{\linewidth}{0.6pt}\\[0.4cm]
+{\LARGE \bfseries
+  Mạng Truyền Thông Backscatter Môi Trường Chống Gây Nhiễu\\
+  với Sự Hỗ Trợ của UAV và Học Tăng Cường\\
+  Đa Tác Tử Imitation-Augmented
+}\\[0.3cm]
+{\large \textit{
+  UAV-Assisted Ambient Backscatter Anti-Jamming Network\\
+  via Imitation-Augmented Multi-Agent Deep Reinforcement Learning\\
+  with Transformer-GAT Centralized Critic
+}}\\[0.2cm]
+\rule{\linewidth}{0.6pt}\\[1.5cm]
+
+\begin{minipage}[t]{0.45\textwidth}
+\begin{flushleft}
+{\large \textbf{Sinh viên thực hiện:}}\\[0.3cm]
+Nguyễn Thế Vinh --- 22021174\\[0.1cm]
+Bùi Tùng Lâm --- 22021225
+\end{flushleft}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.45\textwidth}
+\begin{flushleft}
+{\large \textbf{Giáo viên hướng dẫn:}}\\[0.3cm]
+TS. Nguyễn Ngọc Tân\\
+Khoa Điện tử Viễn thông\\
+Trường ĐH Công nghệ --- ĐHQGHN
+\end{flushleft}
+\end{minipage}
+
+\vfill
+{\large Hà Nội, 2025}
+
+\end{center}
+\end{titlepage}
+
+%-----------------------------------------------------------------------------
+% FRONT MATTER
+%-----------------------------------------------------------------------------
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+%--- Tóm tắt (Vietnamese Abstract) ---
+\chapter*{Tóm tắt}
+\addcontentsline{toc}{chapter}{Tóm tắt}
+% TODO: viết tóm tắt tiếng Việt (~250 từ)
+
+%--- Abstract (English) ---
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+% TODO: English abstract (~250 words)
+
+%--- Lời cảm ơn ---
+\chapter*{Lời cảm ơn}
+\addcontentsline{toc}{chapter}{Lời cảm ơn}
+% TODO
+
+%--- Mục lục ---
+\tableofcontents
+
+%--- Danh sách hình vẽ ---
+\listoffigures
+\addcontentsline{toc}{chapter}{Danh sách hình vẽ}
+
+%--- Danh sách bảng ---
+\listoftables
+\addcontentsline{toc}{chapter}{Danh sách bảng}
+
+%--- Danh sách thuật toán ---
+\listofalgorithms
+\addcontentsline{toc}{chapter}{Danh sách thuật toán}
+
+%--- Danh sách từ viết tắt ---
+\chapter*{Danh sách từ viết tắt}
+\addcontentsline{toc}{chapter}{Danh sách từ viết tắt}
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\toprule
+\textbf{Ký hiệu} & \textbf{Ý nghĩa} \\
+\midrule
+AmBC  & Ambient Backscatter Communication \\
+CTDE  & Centralized Training, Decentralized Execution \\
+D2D   & Device-to-Device \\
+Dec-POMDP & Decentralized Partially Observable Markov Decision Process \\
+DRL   & Deep Reinforcement Learning \\
+DU    & Destination User \\
+GAT   & Graph Attention Network \\
+GNN   & Graph Neural Network \\
+IA-MADDPG & Imitation-Augmented Multi-Agent DDPG \\
+IoT   & Internet of Things \\
+LoS   & Line-of-Sight \\
+MARL  & Multi-Agent Reinforcement Learning \\
+MDP   & Markov Decision Process \\
+NLoS  & Non-Line-of-Sight \\
+PER   & Prioritized Experience Replay \\
+POMDP & Partially Observable Markov Decision Process \\
+QoS   & Quality of Service \\
+RBS   & Relay Base Station \\
+RF    & Radio Frequency \\
+SINR  & Signal-to-Interference-plus-Noise Ratio \\
+SU    & Source User \\
+TD3   & Twin Delayed Deep Deterministic Policy Gradient \\
+TSR   & Transmission Success Rate \\
+UAV   & Unmanned Aerial Vehicle \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%=============================================================================
+% MAIN MATTER
+%=============================================================================
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ============================================================
+\chapter{Giới thiệu}
+\label{chap:intro}
+% ============================================================
+
+\section{Bối cảnh và động lực nghiên cứu}
+\label{sec:intro:motivation}
+% Mô tả tình hình gây nhiễu trong mạng không dây hiện đại.
+% Nêu thách thức truyền thông D2D dưới điều kiện jamming.
+% Giới thiệu khái niệm Ambient Backscatter --- biến nhiễu thành năng lượng.
+% Động lực triển khai UAV như relay động trong môi trường adversarial.
+
+\section{Tình hình nghiên cứu trong và ngoài nước}
+\label{sec:intro:sota}
+
+\subsection{Nghiên cứu ngoài nước}
+\label{subsec:intro:sota:global}
+% Jamming/anti-jamming survey [1][2]
+% DRL-based anti-jamming: Dueling DNN [3], Spectrum Waterfall [4], PPO [5]
+% UAV communications: survey [6]
+% UAV anti-jamming: power+trajectory [7], DDPG power control [8], 3D trajectory [9][10]
+
+\subsection{Nghiên cứu trong nước}
+\label{subsec:intro:sota:vietnam}
+% Viettel, VNPT, HV Kỹ thuật Quân sự: UAV ứng dụng thực tiễn
+% Hạn chế: chủ yếu ứng dụng, ít công bố quốc tế về tối ưu hóa
+
+\section{Khoảng trống nghiên cứu và đề xuất}
+\label{sec:intro:gap}
+% Xác định gap: (1) hầu hết nghiên cứu dùng 1 UAV đơn tác tử;
+%   (2) không khai thác jamming signal như RF energy source;
+%   (3) thiếu imitation learning để warm-start cho MARL;
+%   (4) critic MLP không nắm bắt được topo graph UAV--SU.
+% Đề xuất: IA-MADDPG + Transformer-GAT Critic + UAV relay cho AmBC D2D
+
+\section{Đóng góp của đề tài}
+\label{sec:intro:contributions}
+% Liệt kê 4--5 đóng góp chính dưới dạng bullet:
+%   C1. Mô hình hệ thống mới: D2D AmBC + UAV relay + jammer khai thác RF
+%   C2. Formulation Dec-POMDP đa tác tử cho N SU + K UAV
+%   C3. Thuật toán IA-MADDPG mở rộng với Transformer-GAT critic
+%   C4. Expert policy cho UAV (heuristic 3D positioning)
+%   C5. Đánh giá toàn diện với 5 baseline; ablation study
+
+\section{Cấu trúc báo cáo}
+\label{sec:intro:structure}
+% Mô tả ngắn từng chương.
+
+
+% ============================================================
+\chapter{Cơ sở lý thuyết}
+\label{chap:background}
+% ============================================================
+
+\section{Truyền thông Backscatter}
+\label{sec:bg:backscatter}
+
+\subsection{Nguyên lý hoạt động của Backscatter}
+\label{subsec:bg:backscatter:principle}
+% Phân biệt passive tag và active reader.
+% Hệ số phản xạ alpha, modulation bằng load impedance.
+
+\subsection{Phân loại: Monostatic, Bistatic, Ambient}
+\label{subsec:bg:backscatter:types}
+% Mô tả và so sánh ba paradigm.
+% Giải thích lý do chọn Ambient (AmBC) cho bài toán này.
+
+\subsection{Mô hình tín hiệu Ambient Backscatter}
+\label{subsec:bg:backscatter:signal}
+% Phương trình tín hiệu nhận tại DU trong điều kiện jamming.
+% Phân tích SINR cho backscatter.
+
+\section{Tấn công Gây nhiễu vô tuyến (Jamming)}
+\label{sec:bg:jamming}
+
+\subsection{Phân loại kỹ thuật jamming}
+\label{subsec:bg:jamming:types}
+% Spot jammer, sweep jammer, barrage jammer, smart jammer.
+
+\subsection{Mô hình jammer trong bài toán}
+\label{subsec:bg:jamming:model}
+% Ground-level constant-power jammer, ảnh hưởng đến SINR.
+
+\subsection{Kỹ thuật chống gây nhiễu truyền thống}
+\label{subsec:bg:antijamming:traditional}
+% Frequency hopping, spread spectrum, power control.
+% Hạn chế: phản ứng chậm, không tận dụng năng lượng jamming.
+
+\section{Truyền thông D2D (Device-to-Device)}
+\label{sec:bg:d2d}
+
+\subsection{Kiến trúc và ưu điểm D2D}
+\label{subsec:bg:d2d:arch}
+
+\subsection{Thách thức D2D dưới môi trường jamming}
+\label{subsec:bg:d2d:challenge}
+
+\section{UAV trong mạng truyền thông không dây}
+\label{sec:bg:uav}
+
+\subsection{Phân loại và đặc tính UAV}
+\label{subsec:bg:uav:classification}
+
+\subsection{Mô hình kênh Air-to-Ground (A2G)}
+\label{subsec:bg:uav:channel}
+% Probabilistic LoS model (ITU-R), tổn hao trung bình.
+
+\subsection{UAV làm relay động}
+\label{subsec:bg:uav:relay}
+% Decode-and-forward relay, energy model, kinematics.
+
+\section{Học tăng cường (Reinforcement Learning)}
+\label{sec:bg:rl}
+
+\subsection{Markov Decision Process (MDP)}
+\label{subsec:bg:rl:mdp}
+% State, action, reward, transition, discount factor.
+
+\subsection{Deep Q-Network (DQN)}
+\label{subsec:bg:rl:dqn}
+
+\subsection{Actor-Critic và DDPG}
+\label{subsec:bg:rl:ddpg}
+% Policy gradient, deterministic policy, replay buffer, target network.
+
+\subsection{TD3 (Twin Delayed DDPG)}
+\label{subsec:bg:rl:td3}
+% Clipped double Q-learning, delayed policy update, target smoothing.
+
+\section{Học tăng cường Đa tác tử (MARL)}
+\label{sec:bg:marl}
+
+\subsection{Dec-POMDP và CTDE}
+\label{subsec:bg:marl:decpomdp}
+
+\subsection{MADDPG}
+\label{subsec:bg:marl:maddpg}
+% Centralized critic, decentralized actor.
+
+\subsection{Imitation Learning và Behavior Cloning}
+\label{subsec:bg:marl:il}
+% Supervised BC loss, lambda annealing, expert warm-up.
+
+\section{Transformer và Graph Attention Network}
+\label{sec:bg:transformer-gat}
+
+\subsection{Self-Attention Mechanism và Transformer Encoder}
+\label{subsec:bg:transformer}
+
+\subsection{Graph Neural Network và Graph Attention (GAT)}
+\label{subsec:bg:gat}
+% Multi-head attention trên đồ thị, message passing.
+
+\subsection{Transformer-GAT trong Multi-Agent RL}
+\label{subsec:bg:tmac}
+% TMAC-style encoder; lý do kết hợp Transformer + GAT cho multi-UAV.
+
+\section{Tổng kết chương}
+\label{sec:bg:summary}
+
+
+% ============================================================
+\chapter{Mô hình Hệ thống và Bài toán Tối ưu}
+\label{chap:system}
+% ============================================================
+
+\section{Kiến trúc mạng}
+\label{sec:sys:architecture}
+
+\subsection{Các thành phần mạng}
+\label{subsec:sys:entities}
+% Bảng: SU_i, DU_i, RBS, UAV U_k, Jammer J.
+% Hình minh họa topo mạng 2D.
+
+\subsection{Cấu hình triển khai và ràng buộc vật lý}
+\label{subsec:sys:deployment}
+% Diện tích 200x200 m², N=5 cặp, K=2 UAV, 1 jammer.
+% Ràng buộc độ cao, tốc độ bay, năng lượng UAV.
+
+\section{Mô hình tín hiệu Backscatter}
+\label{sec:sys:signal}
+
+\subsection{Nguyên lý khai thác năng lượng jamming}
+\label{subsec:sys:signal:harvest}
+% Jammer làm RF excitation cho AmBC.
+
+\subsection{Phương trình tín hiệu nhận và hệ số phản xạ}
+\label{subsec:sys:signal:eq}
+% y_{D_i} = sqrt(P_J) h_{J,S_i} h_{S_i,D_i} alpha_i x + n
+
+\section{Mô hình kênh truyền}
+\label{sec:sys:channel}
+
+\subsection{Kênh mặt đất (Ground-to-Ground): Rayleigh Fading}
+\label{subsec:sys:channel:ground}
+% g_{X,Y} = |h_{X,Y}|^2, h ~ CN(0, d^{-eta}).
+
+\subsection{Kênh không-đất (Air-to-Ground): Probabilistic LoS}
+\label{subsec:sys:channel:a2g}
+% P_LoS(theta), L_LoS, L_NLoS, bar{g}_{U_k,X}.
+
+\subsection{Tổn hao đường truyền trung bình}
+\label{subsec:sys:channel:pathloss}
+
+\section{Các chế độ truyền thông}
+\label{sec:sys:modes}
+
+\subsection{Mode 0 --- Truyền thẳng D2D}
+\label{subsec:sys:mode0}
+% SINR gamma_i^{D2D}, điều kiện áp dụng.
+
+\subsection{Mode 1 --- Relay qua RBS cố định}
+\label{subsec:sys:mode1}
+% SINR gamma_i^{RBS} = min(hop1, hop2), bottleneck phân tích.
+
+\subsection{Mode 2 --- Relay qua UAV di động}
+\label{subsec:sys:mode2}
+% SINR gamma_i^{UAV} với bar{g} A2G, ưu điểm so với Mode 1.
+
+\subsection{So sánh hiệu năng theo mode trong các kịch bản}
+\label{subsec:sys:mode:compare}
+% Bảng so sánh: close, far, RBS-far, LoS blocked.
+
+\section{Phát biểu bài toán tối ưu}
+\label{sec:sys:optimization}
+
+\subsection{Biến quyết định}
+\label{subsec:sys:opt:vars}
+% alpha_i, m_i, Delta p_{U_k}.
+
+\subsection{Hàm phần thưởng composite}
+\label{subsec:sys:opt:reward}
+% r_i = w1*log(1+gamma) + w2*tanh(...) - w3*alpha^2 - w4*E_move
+% Phân tích từng số hạng và tác dụng thiết kế.
+
+\subsection{Hàm phần thưởng UAV positioning}
+\label{subsec:sys:opt:uav-reward}
+% r_{U_k}^{pos} = sum Delta gamma_i - w4 * norm(Delta p)
+
+\subsection{Hàm mục tiêu và ràng buộc đầy đủ}
+\label{subsec:sys:opt:objective}
+% max E[sum_t sum_i r_i(t)]
+% Liệt kê toàn bộ ràng buộc.
+
+\section{Mô hình hoá Dec-POMDP Đa tác tử}
+\label{sec:sys:pomdp}
+
+\subsection{Không gian trạng thái toàn cục}
+\label{subsec:sys:pomdp:state}
+
+\subsection{Không gian quan sát cục bộ}
+\label{subsec:sys:pomdp:obs}
+% o_i cho SU, o_{U_k} cho UAV.
+
+\subsection{Không gian hành động}
+\label{subsec:sys:pomdp:action}
+% Hybrid (SU): continuous alpha + discrete m.
+% Continuous (UAV): (Delta x, Delta y, Delta z).
+
+\subsection{Hàm phần thưởng toàn cục cho Centralized Critic}
+\label{subsec:sys:pomdp:global-reward}
+
+\subsection{Tính không hoàn hảo của thông tin (Partial Observability)}
+\label{subsec:sys:pomdp:partial}
+
+\section{Tổng kết chương}
+\label{sec:sys:summary}
+
+
+% ============================================================
+\chapter{Thuật toán IA-MADDPG với Transformer-GAT Critic}
+\label{chap:algorithm}
+% ============================================================
+
+\section{Tổng quan framework đề xuất}
+\label{sec:alg:overview}
+% Sơ đồ khối toàn bộ framework, so sánh với IA-MADDPG gốc.
+
+\section{Kiến trúc mạng Neural}
+\label{sec:alg:architecture}
+
+\subsection{Kiến trúc Actor cho SU Agent}
+\label{subsec:alg:actor:su}
+% MLP [256, 256, 128]; output layer: sigmoid(alpha), Gumbel-softmax(m).
+
+\subsection{Kiến trúc Actor cho UAV Agent}
+\label{subsec:alg:actor:uav}
+% MLP [256, 256, 128]; output layer: tanh * v_max cho Delta p.
+
+\subsection{Transformer-GAT Centralized Critic}
+\label{subsec:alg:critic:tgat}
+
+\subsubsection{Transformer Encoder cho Quan sát Đa tác tử}
+\label{subsubsec:alg:critic:transformer}
+% Multi-head self-attention trên tập quan sát {o_1,...,o_N, o_U1,...,o_UK}.
+% Mã hoá chuỗi agent thành context vector.
+
+\subsubsection{Graph Attention Network cho Topo UAV--SU}
+\label{subsubsec:alg:critic:gat}
+% Xây dựng đồ thị: node = agent, edge weight = channel gain.
+% GAT message passing để tổng hợp thông tin topo.
+
+\subsubsection{Kết hợp Transformer + GAT trong Critic}
+\label{subsubsec:alg:critic:combine}
+% Concatenate Transformer context + GAT output -> MLP -> Q-value.
+
+\subsubsection{Double Q-learning (TD3 style)}
+\label{subsubsec:alg:critic:double}
+
+\section{Giai đoạn 1: Expert Warm-Up (Pre-Population)}
+\label{sec:alg:warmup}
+
+\subsection{Expert Policy cho SU Agent}
+\label{subsec:alg:expert:su}
+% Greedy: chọn mode và alpha tối đa SINR tức thời với full CSI.
+
+\subsection{Expert Policy cho UAV Agent}
+\label{subsec:alg:expert:uav}
+% Heuristic: di chuyển về vị trí tối đa sum SINR của SU trong cluster C_k.
+% Phân tích thuật toán heuristic và complexity.
+
+\subsection{Pre-population Replay Buffer}
+\label{subsec:alg:expert:buffer}
+% Số lượng expert transitions, ảnh hưởng đến cold-start.
+
+\section{Giai đoạn 2: Behavior Cloning Regularization}
+\label{sec:alg:bc}
+
+\subsection{Loss Function kết hợp MADDPG + BC}
+\label{subsec:alg:bc:loss}
+% L = L_{MADDPG} + lambda_IL * L_{BC}
+% Phân tích gradient flow.
+
+\subsection{Lambda Annealing Schedule}
+\label{subsec:alg:bc:anneal}
+% lambda(t) = lambda_0 * decay^t; điều kiện dừng annealing.
+
+\section{Các kỹ thuật hỗ trợ}
+\label{sec:alg:supporting}
+
+\subsection{Prioritized Experience Replay (PER)}
+\label{subsec:alg:per}
+% TD-error priority, importance sampling weights, sum-tree data structure.
+
+\subsection{Target Policy Smoothing (TD3)}
+\label{subsec:alg:td3}
+% Clipped Gaussian noise trên target action, delayed policy update.
+
+\subsection{Xử lý hành động lai (Hybrid Action Space)}
+\label{subsec:alg:hybrid}
+% Continuous alpha qua tanh; discrete m qua Gumbel-Softmax straight-through.
+
+\subsection{Curriculum Learning (Tùy chọn)}
+\label{subsec:alg:curriculum}
+% Tăng dần Gamma_th trong quá trình training.
+
+\section{Quy trình huấn luyện đầy đủ}
+\label{sec:alg:training}
+% Algorithm box: pseudocode toàn bộ training loop.
+% Mô tả từng bước: collect, store, sample, update critic, update actor.
+
+\section{Phân tích độ phức tạp}
+\label{sec:alg:complexity}
+% Time complexity: O(N+K) per step; Space: replay buffer size.
+% Scalability khi tăng N và K.
+
+\section{Tổng kết chương}
+\label{sec:alg:summary}
+
+
+% ============================================================
+\chapter{Thiết lập Mô phỏng và Đánh giá Hiệu năng}
+\label{chap:simulation}
+% ============================================================
+
+\section{Thiết lập môi trường mô phỏng}
+\label{sec:sim:setup}
+
+\subsection{Tham số hệ thống}
+\label{subsec:sim:params}
+% Bảng đầy đủ: diện tích, N=5, K=2, P_J, N_0, G, eta, H_range, v_max, Gamma_th.
+
+\subsection{Tham số huấn luyện}
+\label{subsec:sim:training-params}
+% Episodes=600, steps/episode=200, batch=256, lr, decay, weights w1..w4.
+
+\subsection{Kiến trúc mạng Neural chi tiết}
+\label{subsec:sim:nn-arch}
+% Actor SU/UAV: [256,256,128]; Critic: [512,256,128,64].
+% Số tham số, activation functions.
+
+\subsection{Môi trường Python và thư viện}
+\label{subsec:sim:env}
+% Custom gym-like environment, PyTorch, NumPy, Matplotlib.
+
+\section{Các phương pháp baseline so sánh}
+\label{sec:sim:baselines}
+% Bảng: DT, Greedy, FH, MADDPG (no IL), IA-MADDPG (RBS only), đề xuất.
+% Mô tả chi tiết cách implement từng baseline.
+
+\section{Chỉ số đánh giá hiệu năng}
+\label{sec:sim:metrics}
+% bar{r}, TSR, bar{R} (bits/s/Hz), mode distribution,
+% UAV trajectory, convergence speed, energy efficiency.
+
+\section{Kết quả và phân tích}
+\label{sec:sim:results}
+
+\subsection{Tốc độ hội tụ trong huấn luyện}
+\label{subsec:sim:results:convergence}
+% Đường cong reward theo episode cho tất cả phương pháp.
+% IA-MADDPG+UAV hội tụ nhanh hơn nhờ expert warm-up.
+
+\subsection{Tổng phần thưởng mạng}
+\label{subsec:sim:results:reward}
+% Bar chart so sánh trung bình reward sau khi hội tụ.
+
+\subsection{Thông lượng trung bình (Average Throughput)}
+\label{subsec:sim:results:throughput}
+% bits/s/Hz vs. jammer power; vs. số cặp SU-DU.
+
+\subsection{Tỷ lệ truyền thành công (TSR)}
+\label{subsec:sim:results:tsr}
+% TSR vs. Gamma_th threshold; ảnh hưởng của K (số UAV).
+
+\subsection{Phân phối lựa chọn chế độ truyền}
+\label{subsec:sim:results:mode}
+% Pie chart / bar: tỷ lệ D2D / RBS / UAV relay theo kịch bản.
+
+\subsection{Quỹ đạo UAV}
+\label{subsec:sim:results:trajectory}
+% Hình 3D/top-view quỹ đạo UAV trong 1 episode.
+% Phân tích UAV tự điều hướng về vùng tối ưu.
+
+\subsection{Hiệu quả năng lượng}
+\label{subsec:sim:results:energy}
+% Bits per Joule cho các phương pháp; trade-off UAV energy vs. throughput.
+
+\subsection{Ảnh hưởng của Transformer-GAT so với MLP Critic}
+\label{subsec:sim:results:tgat-ablation}
+% So sánh IA-MADDPG+UAV+TGAT vs. IA-MADDPG+UAV+MLP.
+
+\section{Nghiên cứu Ablation}
+\label{sec:sim:ablation}
+
+\subsection{Tác động của Imitation Learning}
+\label{subsec:sim:ablation:il}
+% Loại bỏ BC term -> cold start, convergence chậm hơn.
+
+\subsection{Tác động của UAV Relay}
+\label{subsec:sim:ablation:uav}
+% Không có UAV (RBS only) vs. có UAV.
+
+\subsection{Tác động của PER}
+\label{subsec:sim:ablation:per}
+% Uniform sampling vs. prioritized.
+
+\subsection{Tác động của Transformer-GAT Critic}
+\label{subsec:sim:ablation:tgat}
+% MLP critic vs. GAT critic vs. Transformer-GAT critic.
+
+\subsection{Tác động của số lượng UAV (K)}
+\label{subsec:sim:ablation:kuav}
+% K=1, 2, 3 --- reward và TSR.
+
+\section{Tổng kết chương}
+\label{sec:sim:summary}
+
+
+% ============================================================
+\chapter{Kết luận và Hướng phát triển}
+\label{chap:conclusion}
+% ============================================================
+
+\section{Kết luận}
+\label{sec:conclusion:summary}
+% Tóm tắt lại bài toán, phương pháp, và kết quả chính.
+% Khẳng định đóng góp của từng thành phần.
+
+\section{Hạn chế của nghiên cứu}
+\label{sec:conclusion:limitations}
+% Perfect CSI assumption, single stationary jammer,
+% small-scale simulation (N=5, K=2).
+
+\section{Hướng phát triển tiếp theo}
+\label{sec:conclusion:future}
+% Imperfect CSI và robust optimization.
+% Mobile/smart jammer.
+% Multi-jammer scenario.
+% Heterogeneous energy: solar + battery + jamming harvesting.
+% Large-scale deployment (N>20, K>5) với parameter sharing.
+% Thực nghiệm phần cứng trên UAV thực.
+
+%=============================================================================
+% BACK MATTER
+%=============================================================================
+
+\printbibliography[heading=bibintoc, title={Tài liệu tham khảo}]
+
+%-----------------------------------------------------------------------------
+% PHỤ LỤC
+%-----------------------------------------------------------------------------
+\appendix
+
+\chapter{Chứng minh các công thức SINR}
+\label{app:sinr-proof}
+% Dẫn xuất chi tiết gamma^D2D, gamma^RBS, gamma^UAV.
+
+\chapter{Cấu trúc code mô phỏng}
+\label{app:code}
+% Sơ đồ module Python, dependency graph.
+% Hướng dẫn cài đặt và chạy.
+
+\chapter{Thông số đầy đủ của mô hình Transformer-GAT}
+\label{app:tgat-params}
+% Số head attention, hidden dim, dropout, normalization.
+
+\chapter{Kết quả mô phỏng bổ sung}
+\label{app:extra-results}
+% Các hình vẽ và bảng không đưa vào chương chính.
+
+%=============================================================================
+\end{document}
+%=============================================================================
