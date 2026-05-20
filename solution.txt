@@ -1,0 +1,10 @@
+Đề xuất “Transformer‑GAT IA‑MADDPG cho mạng UAV‑Assisted Ambient Backscatter Anti‑Jamming”
+Thay centralized critic/encoder hiện tại bằng một Transformer‑based, graph‑attention multi‑agent module (kiểu TMAC + GAT) để khai thác cấu trúc topo UAV–SU + tương quan jamming trong CTDE, vẫn giữ IA‑MADDPG (imitation từ expert SU + UAV) nhưng:
+
+Encoder toàn cục dùng Transformer cho POMDP đa tác tử (giống TMAC) để xử lý quan sát từng tác tử dưới thông tin không đầy đủ.
+
+Quan hệ giữa UAV–SU được mã hoá bằng Graph Attention Network như các bài anti‑jamming UAV communications mới (GAT cho multi‑UAV chống nhiễu).
+
+Framework học theo Multi‑Agent DRL CTDE kiểu collaborative UAV relay under jamming (Thai Duong et al. 2025), nhưng lớp feature extractor cho critic và imitation đều là Transformer‑GAT, từ đó tối ưu đồng thời quỹ đạo UAV 3D + chọn mode AmB (D2D/RBS/UAV) + hệ số phản xạ.
+
+Nói ngắn: “IA‑MADDPG + Transformer‑GAT centralized critic cho UAV‑Assisted AmB anti‑jamming dưới DEC‑POMDP” – đây là combo vừa rất mới (Transformer + GNN trong MARL chống jamming/UAV), vừa bám sát bài toán của bạn, dễ claim novelty và performance gain so với IA‑MADDPG gốc.
