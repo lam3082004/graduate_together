@@ -114,52 +114,111 @@
 %=============================================================================
 
 %-----------------------------------------------------------------------------
-% TITLE PAGE
+% TRANG BÌA CHÍNH (Bìa 1)
 %-----------------------------------------------------------------------------
 \begin{titlepage}
+\thispagestyle{empty}
 \begin{center}
 
-{\large \textbf{ĐẠI HỌC QUỐC GIA HÀ NỘI}}\\[0.2cm]
-{\large \textbf{TRƯỜNG ĐẠI HỌC CÔNG NGHỆ}}\\[0.2cm]
-{\large \textbf{KHOA ĐIỆN TỬ VIỄN THÔNG}}\\[1.5cm]
+% --- Dòng đầu: tên trường ---
+\MakeUppercase{\normalsize\textbf{Đại học Quốc gia Hà Nội}}\\[0.15cm]
+\rule{\linewidth}{1.2pt}\\[0.05cm]
+\rule{\linewidth}{0.4pt}\\[0.2cm]
+\MakeUppercase{\large\textbf{Trường Đại học Công nghệ}}\\[0.1cm]
+{\normalsize Khoa Điện tử -- Viễn thông}\\[0.8cm]
 
-\includegraphics[width=3.5cm]{uet_logo.png}\\[1.5cm]
+% --- Logo ---
+\includegraphics[width=3.2cm]{uet_logo.png}\\[0.8cm]
 
-{\Large \textbf{ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC}}\\[0.5cm]
-{\large Ngành: Công nghệ Kỹ thuật Điện tử - Viễn thông}\\[1.5cm]
+% --- Loại đồ án ---
+{\Large\textbf{ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC}}\\[0.25cm]
+{\normalsize Hệ đào tạo: Chính quy \quad -- \quad Ngành: Công nghệ Kỹ thuật Điện tử -- Viễn thông}\\[1.0cm]
 
-\rule{\linewidth}{0.6pt}\\[0.4cm]
-{\LARGE \bfseries
-  Mạng Truyền Thông Backscatter Môi Trường Chống Gây Nhiễu\\
-  với Sự Hỗ Trợ của UAV và Học Tăng Cường\\
-  Đa Tác Tử Imitation-Augmented
-}\\[0.3cm]
-{\large \textit{
-  UAV-Assisted Ambient Backscatter Anti-Jamming Network\\
-  via Imitation-Augmented Multi-Agent Deep Reinforcement Learning\\
-  with Transformer-GAT Centralized Critic
-}}\\[0.2cm]
-\rule{\linewidth}{0.6pt}\\[1.5cm]
+% --- Khung tiêu đề ---
+\noindent\rule{\linewidth}{1.2pt}\\[0.06cm]
+\noindent\rule{\linewidth}{0.4pt}\\[0.5cm]
+{%
+  \setlength{\baselineskip}{1.6\baselineskip}
+  \LARGE\bfseries
+  MẠNG TRUYỀN THÔNG BACKSCATTER MÔI TRƯỜNG\\
+  CHỐNG GÂY NHIỄU VỚI SỰ HỖ TRỢ CỦA UAV\\
+  SỬ DỤNG HỌC TĂNG CƯỜNG ĐA TÁC TỬ\\
+  IMITATION-AUGMENTED\\
+}\\[0.5cm]
+\noindent\rule{\linewidth}{0.4pt}\\[0.06cm]
+\noindent\rule{\linewidth}{1.2pt}\\[1.2cm]
 
-\begin{minipage}[t]{0.45\textwidth}
-\begin{flushleft}
-{\large \textbf{Sinh viên thực hiện:}}\\[0.3cm]
-Nguyễn Thế Vinh --- 22021174\\[0.1cm]
-Bùi Tùng Lâm --- 22021225
-\end{flushleft}
-\end{minipage}
-\hfill
-\begin{minipage}[t]{0.45\textwidth}
-\begin{flushleft}
-{\large \textbf{Giáo viên hướng dẫn:}}\\[0.3cm]
-TS. Nguyễn Ngọc Tân\\
-Khoa Điện tử Viễn thông\\
-Trường ĐH Công nghệ --- ĐHQGHN
-\end{flushleft}
-\end{minipage}
+% --- Sinh viên và giáo viên hướng dẫn ---
+\begin{tabular}{@{}p{0.02\textwidth}p{0.46\textwidth}@{\hskip 0.04\textwidth}p{0.46\textwidth}@{}}
+ & \textbf{Sinh viên thực hiện:}         & \textbf{Giáo viên hướng dẫn:}             \\[0.4cm]
+ & Nguyễn Thế Vinh \newline MSSV: 22021174   & TS. Nguyễn Ngọc Tân \newline
+     Khoa Điện tử -- Viễn thông \newline
+     Trường ĐH Công nghệ -- ĐHQGHN            \\[0.3cm]
+ & Bùi Tùng Lâm \newline MSSV: 22021225      &                                           \\
+\end{tabular}
 
 \vfill
-{\large Hà Nội, 2025}
+
+% --- Chân trang ---
+\rule{\linewidth}{0.4pt}\\[0.15cm]
+{\normalsize \textbf{Hà Nội -- 2025}}
+
+\end{center}
+\end{titlepage}
+
+%-----------------------------------------------------------------------------
+% TRANG BÌA PHỤ (Bìa 2 -- bản nộp chính thức)
+%-----------------------------------------------------------------------------
+\begin{titlepage}
+\thispagestyle{empty}
+\begin{center}
+
+\MakeUppercase{\normalsize\textbf{Đại học Quốc gia Hà Nội}}\\[0.12cm]
+\rule{\linewidth}{1.2pt}\\[0.04cm]
+\rule{\linewidth}{0.4pt}\\[0.15cm]
+\MakeUppercase{\large\textbf{Trường Đại học Công nghệ}}\\[0.08cm]
+{\normalsize Khoa Điện tử -- Viễn thông}\\[0.7cm]
+
+\includegraphics[width=3.0cm]{uet_logo.png}\\[0.7cm]
+
+{\Large\textbf{ĐỒ ÁN TỐT NGHIỆP ĐẠI HỌC}}\\[0.9cm]
+
+\noindent\rule{\linewidth}{1.0pt}\\[0.05cm]
+\noindent\rule{\linewidth}{0.4pt}\\[0.4cm]
+{%
+  \setlength{\baselineskip}{1.55\baselineskip}
+  \LARGE\bfseries
+  MẠNG TRUYỀN THÔNG BACKSCATTER MÔI TRƯỜNG\\
+  CHỐNG GÂY NHIỄU VỚI SỰ HỖ TRỢ CỦA UAV\\
+  SỬ DỤNG HỌC TĂNG CƯỜNG ĐA TÁC TỬ\\
+  IMITATION-AUGMENTED\\
+}\\[0.4cm]
+\noindent\rule{\linewidth}{0.4pt}\\[0.05cm]
+\noindent\rule{\linewidth}{1.0pt}\\[0.9cm]
+
+% --- Bảng thông tin đầy đủ ---
+\begin{tabular}{@{}r@{\hskip 0.5cm}l@{}}
+  \textbf{Sinh viên 1:}        & Nguyễn Thế Vinh -- MSSV: 22021174 \\[0.2cm]
+  \textbf{Sinh viên 2:}        & Bùi Tùng Lâm -- MSSV: 22021225 \\[0.4cm]
+  \textbf{Lớp:}                & K67CA -- Công nghệ Kỹ thuật Điện tử -- Viễn thông \\[0.2cm]
+  \textbf{Khoá:}               & QH-2022 (Khoá 67) \\[0.4cm]
+  \textbf{Giáo viên hướng dẫn:} & TS. Nguyễn Ngọc Tân \\[0.1cm]
+                               & Khoa Điện tử -- Viễn thông \\[0.1cm]
+                               & Trường Đại học Công nghệ -- ĐHQGHN \\
+\end{tabular}
+
+\vfill
+
+\begin{tabular}{@{}p{0.46\textwidth}@{\hskip 0.08\textwidth}p{0.46\textwidth}@{}}
+  \centering\textbf{Giáo viên hướng dẫn} & \centering\textbf{Sinh viên thực hiện} \\[0.2cm]
+  \centering\textit{(Ký và ghi rõ họ tên)} & \centering\textit{(Ký và ghi rõ họ tên)} \\[2.0cm]
+  \centering\textbf{TS. Nguyễn Ngọc Tân}
+    & \centering\textbf{Nguyễn Thế Vinh \quad Bùi Tùng Lâm} \\
+\end{tabular}
+
+\vspace{0.6cm}
+\rule{\linewidth}{0.4pt}\\[0.12cm]
+{\normalsize \textbf{Hà Nội -- 2025}}
 
 \end{center}
 \end{titlepage}
