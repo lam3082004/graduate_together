@@ -1,0 +1,6 @@
+Baseline,Δ Reward,Δ TSR,Δ Throughput,Δ Energy-Eff
+IA-MADDPG(RBS),-2.07%,+0.00%,-51.68%,-100.00%
+StandardMADDPG,-4.76%,-100.00%,-31.57%,+905.37%
+Greedy,-5.08%,-100.00%,-73.08%,-100.00%
+FreqHopping,-22.10%,+0.00%,+182.64%,-100.00%
+DirectTX,-23.72%,+0.00%,+398.38%,-100.00%
