@@ -30,16 +30,16 @@ def main():
     with open(os.path.join(args.results_dir, "metrics_summary.json")) as f:
         raw = json.load(f)
 
-    # Label map
-    label_map = {
-        "ia_maddpg_uav":  "IA-MADDPG+UAV",
-        "ia_maddpg_rbs":  "IA-MADDPG(RBS)",
-        "maddpg":         "StandardMADDPG",
-        "greedy":         "Greedy",
-        "fh":             "FreqHopping",
-        "dt":             "DirectTX",
-    }
-    metrics = {label_map[k]: v for k, v in raw.items() if k in label_map}
+    # New schema produced by re_evaluate.py
+    metrics = {r["method"]: {
+        "avg_reward":     r["reward"],
+        "std_reward":     r.get("reward_std", 0.0),
+        "avg_tsr":        r.get("tsr@-10dB", 0.0),  # ngưỡng ý nghĩa
+        "std_tsr":        0.0,
+        "avg_throughput": r["throughput"],
+        "energy_efficiency": r["energy_efficiency"],
+        "mode_counts":    [r["mode_d2d"], r["mode_rbs"], r["mode_uav"]],
+    } for r in raw.get("summary", [])}
 
     # ── LaTeX section ────────────────────────────────────────────────────────
     tex = []
@@ -51,15 +51,16 @@ def main():
     tex.append(r"\label{tab:methods-compare}")
     tex.append(r"\begin{tabular}{l c c c c}")
     tex.append(r"\hline")
-    tex.append(r"\textbf{Phương pháp} & \textbf{Phần thưởng} & \textbf{TSR} "
-               r"& \textbf{Thông lượng} & \textbf{Hiệu quả NL} \\")
+    tex.append(r"\textbf{Phương pháp} & \textbf{Phần thưởng} "
+               r"& \textbf{TSR @-10 dB} & \textbf{Thông lượng} "
+               r"& \textbf{Hiệu quả NL} \\")
     tex.append(r"\hline")
     for name, v in metrics.items():
         tex.append(
             f"{METHOD_VI.get(name, name)} & "
             f"{v['avg_reward']:+.3f} $\\pm$ {v['std_reward']:.3f} & "
-            f"{v['avg_tsr']:.3f} $\\pm$ {v['std_tsr']:.3f} & "
-            f"{v['avg_throughput']:.3f} & "
+            f"{v['avg_tsr']:.4f} & "
+            f"{v['avg_throughput']:.4f} & "
             f"{v['energy_efficiency']:.3f} \\\\"
         )
     tex.append(r"\hline")
@@ -71,7 +72,8 @@ def main():
         ("convergence_tsr.png", "Tốc độ hội tụ của tỷ lệ truyền thành công (TSR)."),
         ("throughput_comparison.png", "So sánh thông lượng trung bình."),
         ("mode_distribution.png",     "Phân bố chế độ truyền (D2D/RBS/UAV)."),
-        ("tsr_vs_threshold.png",      "TSR theo ngưỡng SINR."),
+        ("tsr_vs_threshold.png",      "TSR theo ngưỡng SINR (toàn dải)."),
+        ("sinr_cdf.png",              "CDF của SINR đầu ra eval policy."),
         ("uav_trajectory.png",        "Quỹ đạo UAV của IA-MADDPG+UAV."),
         ("energy_efficiency.png",     "Hiệu quả năng lượng các phương pháp."),
     ]:
@@ -91,25 +93,23 @@ def main():
     md = []
     md.append("# Chương 5 — Kết quả mô phỏng và đánh giá\n")
     md.append("## 5.1 Bảng so sánh các phương pháp\n")
-    md.append("| Phương pháp | Phần thưởng | TSR | Thông lượng (b/s/Hz) | "
-              "Hiệu quả NL | D2D / RBS / UAV |")
+    md.append("| Phương pháp | Phần thưởng | TSR @-10 dB | "
+              "Thông lượng (b/s/Hz) | Hiệu quả NL | D2D / RBS / UAV |")
     md.append("|---|---|---|---|---|---|")
     for name, v in metrics.items():
         mc = v.get("mode_counts", [0, 0, 0])
-        total = max(sum(mc), 1)
         md.append(
             f"| **{METHOD_VI.get(name, name)}** | "
             f"{v['avg_reward']:+.3f} ± {v['std_reward']:.3f} | "
-            f"{v['avg_tsr']:.3f} ± {v['std_tsr']:.3f} | "
-            f"{v['avg_throughput']:.3f} | "
+            f"{v['avg_tsr']:.4f} | "
+            f"{v['avg_throughput']:.4f} | "
             f"{v['energy_efficiency']:.3f} | "
-            f"{mc[0]/total:.2f}/{mc[1]/total:.2f}/{mc[2]/total:.2f} |")
+            f"{mc[0]:.2f} / {mc[1]:.2f} / {mc[2]:.2f} |")
     md.append("\n## 5.2 Hình ảnh kết quả\n")
     for fig in ["training_curves.png", "convergence_tsr.png",
                 "throughput_comparison.png", "mode_distribution.png",
-                "tsr_vs_threshold.png", "uav_trajectory.png",
-                "energy_efficiency.png", "reward_comparison.png",
-                "tsr_comparison.png"]:
+                "tsr_vs_threshold.png", "sinr_cdf.png", "uav_trajectory.png",
+                "energy_efficiency.png", "reward_comparison.png"]:
         md.append(f"![{fig}]({fig})\n")
     md_path = os.path.join(args.results_dir, "chapter5_results.md")
     with open(md_path, "w") as f:

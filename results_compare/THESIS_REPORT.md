@@ -60,7 +60,7 @@
 > `sinr_cdf.png`). Vì vậy chỉ số TSR ở ngưỡng mặc định mất ý nghĩa phân biệt.
 > Bảng 4 dưới đây dùng dải ngưỡng phù hợp.
 
-## 4. TSR ở các ngưỡng SINR ý nghĩa (`metrics_summary_v2.csv`)
+## 4. TSR ở các ngưỡng SINR ý nghĩa (`metrics_summary.csv`)
 
 | Phương pháp | Throughput | TSR @ −15 dB | TSR @ −10 dB | TSR @ −5 dB |
 |---|---|---|---|---|
@@ -133,15 +133,13 @@ phạt Δp). Đây là **artefact của reward weight (w₃, w₄) đang ưu ái
 |---|---|
 | `training_curves.png` | Reward huấn luyện 60 ep, 6 phương pháp |
 | `convergence_tsr.png` | TSR huấn luyện theo episode |
-| `throughput_comparison.png` / `throughput_v2.png` | Bar throughput |
-| `reward_comparison.png` | Bar reward ± std |
-| `tsr_comparison.png` | Bar TSR ± std (ở γ_th = 5 dB — gần 0) |
-| `mode_distribution.png` / `_v2.png` | Tỷ lệ chọn D2D/RBS/UAV |
-| `tsr_vs_threshold.png` | TSR theo dải −5 → +20 dB (dải cũ) |
-| `tsr_vs_threshold_full.png` | TSR theo dải −30 → +5 dB (dải có ý nghĩa) |
-| `sinr_cdf.png` | CDF của SINR (eval) — bằng chứng dải SINR thực tế |
-| `energy_efficiency.png` | Hiệu suất năng lượng |
-| `uav_trajectory.png` / `_v2.png` | Quỹ đạo UAV 3-D (eval) |
+| `throughput_comparison.png` | Bar throughput trung bình ± std |
+| `reward_comparison.png`     | Bar reward trung bình ± std |
+| `mode_distribution.png`     | Tỷ lệ chọn D2D / RBS / UAV |
+| `tsr_vs_threshold.png`      | TSR theo dải ngưỡng SINR −30 → +5 dB |
+| `sinr_cdf.png`              | CDF của SINR (eval) — bằng chứng dải SINR thực tế |
+| `energy_efficiency.png`     | Hiệu suất năng lượng |
+| `uav_trajectory.png`        | Quỹ đạo UAV 3-D (eval một episode) |
 
 ---
 
@@ -149,17 +147,13 @@ phạt Δp). Đây là **artefact của reward weight (w₃, w₄) đang ưu ái
 
 | Tệp | Mô tả |
 |---|---|
-| `metrics_summary.csv`     | CSV chính (γ_th = 5 dB) |
-| `metrics_summary.json`    | JSON tương đương |
-| `metrics_summary_v2.csv`  | CSV ở dải ngưỡng có ý nghĩa |
-| `metrics_summary_v2.json` | JSON tương đương + sweep TSR |
-| `eval_results.json`       | Kết quả eval gốc của `run_comparison.py` |
-| `improvement_table.csv`   | Δ% IA-MADDPG+UAV vs baselines |
-| `analysis_notes.md`       | Ghi chú phân tích |
-| `report_summary.md`       | Báo cáo tóm tắt tự sinh |
-| `chapter5_results.tex`    | Section LaTeX cho luận văn |
+| `metrics_summary.csv`     | CSV chính — sweep ngưỡng SINR ý nghĩa + throughput / reward / EE |
+| `metrics_summary.json`    | JSON tương đương + đầy đủ TSR sweep |
+| `improvement_table.csv`   | Δ% IA-MADDPG+UAV vs từng baseline |
+| `analysis_notes.md`       | Ghi chú phân tích (auto-generated) |
+| `chapter5_results.tex`    | Section LaTeX dán thẳng vào luận văn |
 | `chapter5_results.md`     | Mirror Markdown |
-| `<method>/history.json`   | Lịch sử reward/tsr/mode huấn luyện |
+| `<method>/history.json`   | Lịch sử reward/tsr/mode theo episode |
 | `<method>/ia_maddpg.pkl`  | Checkpoint actor (chỉ method có học) |
 
 ---
@@ -191,15 +185,17 @@ phạt Δp). Đây là **artefact của reward weight (w₃, w₄) đang ưu ái
 cd src
 source venv/bin/activate
 
-# Huấn luyện + đánh giá (24 phút)
+# 1) Huấn luyện + đánh giá ban đầu (≈ 24 phút)
 python run_comparison.py --out ../results_compare/ \
   --episodes 60 --steps 50 --warmup 800 --batch 128 \
   --eval_episodes 30 --seed 42
 
-# Re-eval dải ngưỡng ý nghĩa (1 phút)
+# 2) Re-eval với dải ngưỡng SINR có ý nghĩa (≈ 1 phút) — ghi đè
+#    metrics_summary.csv/json + tsr_vs_threshold.png + sinr_cdf.png +
+#    mode_distribution.png + throughput_comparison.png + uav_trajectory.png
 python re_evaluate.py --results_dir ../results_compare/ --n_eps 40
 
-# Sinh báo cáo + LaTeX section (vài giây)
+# 3) Sinh báo cáo + LaTeX section (vài giây)
 python analyze_comparison.py --results_dir ../results_compare/
 python build_thesis_section.py --results_dir ../results_compare/
 ```

@@ -26,8 +26,6 @@ Outputs land in `results_compare/`:
 from __future__ import annotations
 
 import argparse
-import copy
-import csv
 import json
 import os
 import sys
@@ -55,8 +53,6 @@ from utils.visualization import (
     plot_uav_trajectory,
     plot_mode_distribution,
     plot_throughput_comparison,
-    plot_ablation_study,
-    plot_tsr_vs_threshold,
 )
 
 
@@ -245,64 +241,6 @@ def evaluate_method(method, agent, cfg, n_episodes=30, capture_trajectory=False)
     }
 
 
-def tsr_vs_threshold(sinr_samples: np.ndarray, thresholds_db) -> list:
-    """Compute TSR for a sweep of SINR thresholds (in dB)."""
-    out = []
-    for th_db in thresholds_db:
-        th_lin = 10 ** (th_db / 10)
-        out.append(float(np.mean(sinr_samples >= th_lin)))
-    return out
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Export helpers
-# ──────────────────────────────────────────────────────────────────────────────
-
-def write_csv(metrics: dict, path: str) -> None:
-    fields = ["method", "avg_reward", "std_reward",
-              "avg_tsr", "std_tsr",
-              "avg_throughput", "std_throughput",
-              "avg_energy", "energy_efficiency",
-              "mode_d2d_frac", "mode_rbs_frac", "mode_uav_frac"]
-    with open(path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        for m, v in metrics.items():
-            mc = np.asarray(v["mode_counts"], float)
-            mc_total = max(mc.sum(), 1)
-            w.writerow({
-                "method": METHOD_LABELS.get(m, m),
-                "avg_reward": f"{v['avg_reward']:.4f}",
-                "std_reward": f"{v['std_reward']:.4f}",
-                "avg_tsr": f"{v['avg_tsr']:.4f}",
-                "std_tsr": f"{v['std_tsr']:.4f}",
-                "avg_throughput": f"{v['avg_throughput']:.4f}",
-                "std_throughput": f"{v['std_throughput']:.4f}",
-                "avg_energy": f"{v['avg_energy']:.2f}",
-                "energy_efficiency": f"{v['energy_efficiency']:.6f}",
-                "mode_d2d_frac": f"{mc[0]/mc_total:.3f}",
-                "mode_rbs_frac": f"{mc[1]/mc_total:.3f}",
-                "mode_uav_frac": f"{mc[2]/mc_total:.3f}",
-            })
-
-
-def write_json(metrics: dict, path: str) -> None:
-    """JSON-safe dump (strip non-serialisable arrays)."""
-    safe = {}
-    for m, v in metrics.items():
-        s = {}
-        for k, val in v.items():
-            if k in ("sinr_samples", "uav_trajectory", "env_snapshot"):
-                continue
-            if isinstance(val, np.ndarray):
-                s[k] = val.tolist()
-            else:
-                s[k] = val
-        safe[m] = s
-    with open(path, "w") as f:
-        json.dump(safe, f, indent=2)
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 # Custom plots beyond utils/visualization
 # ──────────────────────────────────────────────────────────────────────────────
@@ -412,13 +350,6 @@ def main() -> None:
         eval_metrics[m] = metrics
     print(f"[eval phase complete] {(time.time()-eval_t0):.1f}s")
 
-    # ── TSR vs threshold sweep ──────────────────────────────────────────────
-    thresholds_db = list(range(-5, 21, 5))
-    tsr_sweep = {}
-    for m, v in eval_metrics.items():
-        tsr_sweep[METHOD_LABELS[m]] = tsr_vs_threshold(
-            v["sinr_samples"], thresholds_db)
-
     # ── Print comparison table ──────────────────────────────────────────────
     header = (f"{'Method':<18} {'Reward':>10} {'TSR':>9} {'Throughput':>12} "
               f"{'EE':>10}  {'D2D/RBS/UAV':>16}")
@@ -435,22 +366,9 @@ def main() -> None:
     print(sep)
 
     # ── Exports ────────────────────────────────────────────────────────────
-    write_csv(eval_metrics, os.path.join(args.out, "metrics_summary.csv"))
-    write_json(eval_metrics, os.path.join(args.out, "metrics_summary.json"))
-
-    eval_path = os.path.join(args.out, "eval_results.json")
-    safe = {METHOD_LABELS[m]: {
-        "avg_reward":   v["avg_reward"],
-        "std_reward":   v["std_reward"],
-        "avg_tsr":      v["avg_tsr"],
-        "avg_throughput": v["avg_throughput"],
-        "energy_efficiency": v["energy_efficiency"],
-        "mode_counts": v["mode_counts"],
-        "tsr_vs_threshold": dict(zip([str(t) for t in thresholds_db],
-                                     tsr_sweep[METHOD_LABELS[m]])),
-    } for m, v in eval_metrics.items()}
-    with open(eval_path, "w") as f:
-        json.dump(safe, f, indent=2)
+    # Note: metrics_summary.{csv,json} are written by re_evaluate.py with the
+    # broader threshold sweep — that's the authoritative version. We skip the
+    # narrow γ_th=5dB CSV/JSON here to avoid duplicate "version" artefacts.
 
     # ── Plots ──────────────────────────────────────────────────────────────
     print("\n[plotting] …")
@@ -478,20 +396,14 @@ def main() -> None:
         save_path=os.path.join(args.out, "throughput_comparison.png"))
     plt.close("all")
 
-    # Reward / TSR / EE bars (custom with error bars)
+    # Reward bar (with error bars). TSR bar omitted because γ_th=5dB is
+    # essentially unreachable in this channel regime — see tsr_vs_threshold.png.
     reward_named = {METHOD_LABELS[m]: eval_metrics[m]["avg_reward"] for m in methods}
     reward_err   = {METHOD_LABELS[m]: eval_metrics[m]["std_reward"] for m in methods}
     plot_metric_bar(reward_named, "Average Reward",
                     "Average Reward across Methods (±1 std)",
                     os.path.join(args.out, "reward_comparison.png"),
                     error_dict=reward_err)
-
-    tsr_named = {METHOD_LABELS[m]: eval_metrics[m]["avg_tsr"] for m in methods}
-    tsr_err   = {METHOD_LABELS[m]: eval_metrics[m]["std_tsr"] for m in methods}
-    plot_metric_bar(tsr_named, "TSR",
-                    "Transmission Success Rate (±1 std)",
-                    os.path.join(args.out, "tsr_comparison.png"),
-                    error_dict=tsr_err)
 
     ee_named = {METHOD_LABELS[m]: eval_metrics[m]["energy_efficiency"] for m in methods}
     plot_metric_bar(ee_named, "Throughput / Energy",
@@ -504,11 +416,8 @@ def main() -> None:
         mode_named, save_path=os.path.join(args.out, "mode_distribution.png"))
     plt.close("all")
 
-    # TSR vs threshold
-    plot_tsr_vs_threshold(
-        tsr_sweep, thresholds_db,
-        save_path=os.path.join(args.out, "tsr_vs_threshold.png"))
-    plt.close("all")
+    # TSR vs threshold plot is produced by re_evaluate.py over the broader
+    # threshold range that actually shows differentiation between methods.
 
     # UAV trajectory (proposed only)
     if "ia_maddpg_uav" in eval_metrics:
@@ -524,34 +433,8 @@ def main() -> None:
                 save_path=os.path.join(args.out, "uav_trajectory.png"))
             plt.close("all")
 
-    # ── Markdown summary ──────────────────────────────────────────────────
-    report_md = os.path.join(args.out, "report_summary.md")
-    with open(report_md, "w") as f:
-        f.write("# Kết quả so sánh các phương án (Chương 5)\n\n")
-        f.write(f"**Cấu hình:** {cfg.episodes} ep × {cfg.steps_per_episode} steps, "
-                f"warmup={cfg.warmup_steps}, batch={cfg.batch_size}, "
-                f"seed={cfg.seed}, eval={args.eval_episodes} ep.\n\n")
-        f.write("## Bảng tổng hợp\n\n")
-        f.write("| Method | Reward (±std) | TSR (±std) | Throughput | Energy Eff. | D2D/RBS/UAV |\n")
-        f.write("|---|---|---|---|---|---|\n")
-        for m in methods:
-            v = eval_metrics[m]
-            mc = np.asarray(v["mode_counts"], float)
-            mc_t = max(mc.sum(), 1)
-            f.write(f"| {METHOD_LABELS[m]} | "
-                    f"{v['avg_reward']:+.4f} ± {v['std_reward']:.4f} | "
-                    f"{v['avg_tsr']:.4f} ± {v['std_tsr']:.4f} | "
-                    f"{v['avg_throughput']:.4f} | "
-                    f"{v['energy_efficiency']:.4f} | "
-                    f"{mc[0]/mc_t:.2f}/{mc[1]/mc_t:.2f}/{mc[2]/mc_t:.2f} |\n")
-        f.write("\n## Hình ảnh sinh ra\n\n")
-        for img in ["training_curves.png", "convergence_tsr.png",
-                    "throughput_comparison.png", "reward_comparison.png",
-                    "tsr_comparison.png", "energy_efficiency.png",
-                    "mode_distribution.png", "tsr_vs_threshold.png",
-                    "uav_trajectory.png"]:
-            f.write(f"- `{img}`\n")
-    print(f"[done] summary report → {report_md}")
+    # Note: the human-readable summary lives in THESIS_REPORT.md (generated
+    # separately via analyze_comparison.py + build_thesis_section.py).
     print(f"[done] all artefacts in {args.out}")
 
 

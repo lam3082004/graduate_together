@@ -6,14 +6,14 @@
 \label{tab:methods-compare}
 \begin{tabular}{l c c c c}
 \hline
-\textbf{Phương pháp} & \textbf{Phần thưởng} & \textbf{TSR} & \textbf{Thông lượng} & \textbf{Hiệu quả NL} \\
+\textbf{Phương pháp} & \textbf{Phần thưởng} & \textbf{TSR @-10 dB} & \textbf{Thông lượng} & \textbf{Hiệu quả NL} \\
 \hline
-IA-MADDPG (UAV-relay) & -0.474 $\pm$ 0.013 & 0.000 $\pm$ 0.000 & 0.007 & 0.000 \\
-IA-MADDPG (chỉ RBS) & -0.465 $\pm$ 0.019 & 0.000 $\pm$ 0.000 & 0.015 & 15259.239 \\
-MADDPG tiêu chuẩn & -0.453 $\pm$ 0.023 & 0.000 $\pm$ 0.001 & 0.011 & 0.000 \\
-Tham lam (Greedy) & -0.451 $\pm$ 0.032 & 0.000 $\pm$ 0.002 & 0.027 & 27386.615 \\
-Nhảy tần ngẫu nhiên (FH) & -0.388 $\pm$ 0.003 & 0.000 $\pm$ 0.000 & 0.003 & 2608.837 \\
-Truyền trực tiếp (DT) & -0.383 $\pm$ 0.002 & 0.000 $\pm$ 0.000 & 0.001 & 1479.519 \\
+IA-MADDPG (UAV-relay) & -0.474 $\pm$ 0.013 & 0.0126 & 0.0074 & 0.000 \\
+IA-MADDPG (chỉ RBS) & -0.464 $\pm$ 0.018 & 0.0248 & 0.0159 & 15915.507 \\
+MADDPG tiêu chuẩn & -0.450 $\pm$ 0.033 & 0.0174 & 0.0131 & 0.000 \\
+Tham lam (Greedy) & -0.445 $\pm$ 0.042 & 0.0488 & 0.0327 & 32651.109 \\
+Nhảy tần ngẫu nhiên (FH) & -0.388 $\pm$ 0.005 & 0.0037 & 0.0033 & 3303.966 \\
+Truyền trực tiếp (DT) & -0.383 $\pm$ 0.003 & 0.0017 & 0.0019 & 1859.048 \\
 \hline
 \end{tabular}
 \end{table}
@@ -49,8 +49,15 @@ Truyền trực tiếp (DT) & -0.383 $\pm$ 0.002 & 0.000 $\pm$ 0.000 & 0.001 & 1
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.78\linewidth]{figures/tsr_vs_threshold.png}
-\caption{TSR theo ngưỡng SINR.}
+\caption{TSR theo ngưỡng SINR (toàn dải).}
 \label{fig:tsr_vs_threshold}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/sinr_cdf.png}
+\caption{CDF của SINR đầu ra eval policy.}
+\label{fig:sinr_cdf}
 \end{figure}
 
 \begin{figure}[!htbp]

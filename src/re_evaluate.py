@@ -250,7 +250,7 @@ def main():
     print("─" * 78)
 
     # ── Exports ─────────────────────────────────────────────────────────────
-    csv_path = os.path.join(args.results_dir, "metrics_summary_v2.csv")
+    csv_path = os.path.join(args.results_dir, "metrics_summary.csv")
     with open(csv_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(summary_rows[0].keys()))
         w.writeheader()
@@ -258,7 +258,7 @@ def main():
             r = {k: (f"{v:.4f}" if isinstance(v, float) else v) for k, v in r.items()}
             w.writerow(r)
 
-    json_path = os.path.join(args.results_dir, "metrics_summary_v2.json")
+    json_path = os.path.join(args.results_dir, "metrics_summary.json")
     serialisable = []
     for r in summary_rows:
         serialisable.append({k: float(v) if isinstance(v, np.floating)
@@ -275,12 +275,12 @@ def main():
     # ── Plots ──────────────────────────────────────────────────────────────
     plot_sinr_cdf(sinr_db, os.path.join(args.results_dir, "sinr_cdf.png"))
     plot_tsr_curve(sinr_db, thresholds,
-                   os.path.join(args.results_dir, "tsr_vs_threshold_full.png"))
+                   os.path.join(args.results_dir, "tsr_vs_threshold.png"))
     plot_throughput_bar(metrics,
-                        os.path.join(args.results_dir, "throughput_v2.png"))
+                        os.path.join(args.results_dir, "throughput_comparison.png"))
     mode_dict = {n: v["mode_counts"] for n, v in metrics.items()}
     plot_mode_distribution(mode_dict,
-                           os.path.join(args.results_dir, "mode_distribution_v2.png"))
+                           os.path.join(args.results_dir, "mode_distribution.png"))
 
     # Save the refreshed UAV trajectory too
     if "IA-MADDPG+UAV" in metrics and metrics["IA-MADDPG+UAV"]["trajectory"] is not None:
@@ -291,7 +291,7 @@ def main():
             trajectory=v["trajectory"],
             positions_su=snap["pos_su"], positions_du=snap["pos_du"],
             pos_rbs=snap["pos_rbs"], pos_jammer=snap["pos_jammer"],
-            save_path=os.path.join(args.results_dir, "uav_trajectory_v2.png"))
+            save_path=os.path.join(args.results_dir, "uav_trajectory.png"))
         plt.close("all")
 
     print(f"\n[done] csv  → {csv_path}")

@@ -30,16 +30,17 @@ def main() -> None:
     with open(path) as f:
         data = json.load(f)
 
-    # Reverse the label mapping for lookup
-    label_map = {
-        "ia_maddpg_uav":  "IA-MADDPG+UAV",
-        "ia_maddpg_rbs":  "IA-MADDPG(RBS)",
-        "maddpg":         "StandardMADDPG",
-        "greedy":         "Greedy",
-        "fh":             "FreqHopping",
-        "dt":             "DirectTX",
-    }
-    by_label = {label_map[k]: v for k, v in data.items() if k in label_map}
+    # New schema (from re_evaluate.py): {"summary": [{"method": ..., ...}, ...],
+    #                                    "tsr_vs_threshold": {...}}
+    rows = data.get("summary", [])
+    by_label = {r["method"]: {
+        "avg_reward": r["reward"],
+        "std_reward": r.get("reward_std", 0.0),
+        "avg_tsr": r.get("tsr@-10dB", 0.0),  # representative ngưỡng có ý nghĩa
+        "avg_throughput": r["throughput"],
+        "energy_efficiency": r["energy_efficiency"],
+        "mode_counts": [r["mode_d2d"], r["mode_rbs"], r["mode_uav"]],
+    } for r in rows}
     if PROPOSED not in by_label:
         raise SystemExit(f"Missing {PROPOSED} in {path}")
     p = by_label[PROPOSED]
@@ -67,16 +68,15 @@ def main() -> None:
     with open(md, "w") as f:
         f.write("# Phân tích so sánh IA-MADDPG+UAV vs các phương án cũ\n\n")
         f.write("## 1. Tóm tắt kết quả (deterministic eval)\n\n")
-        f.write("| Method | Reward | TSR | Throughput (b/s/Hz) | Energy Eff. | "
-                "D2D/RBS/UAV |\n")
+        f.write("| Method | Reward | TSR @-10 dB | Throughput (b/s/Hz) | "
+                "Energy Eff. | D2D/RBS/UAV |\n")
         f.write("|---|---|---|---|---|---|\n")
         for name, b in by_label.items():
             mc = b.get("mode_counts", [0, 0, 0])
-            total = max(sum(mc), 1)
             f.write(f"| **{name}** | {b['avg_reward']:+.4f} | "
                     f"{b['avg_tsr']:.4f} | {b['avg_throughput']:.4f} | "
                     f"{b['energy_efficiency']:.4f} | "
-                    f"{mc[0]/total:.2f}/{mc[1]/total:.2f}/{mc[2]/total:.2f} |\n")
+                    f"{mc[0]:.2f}/{mc[1]:.2f}/{mc[2]:.2f} |\n")
 
         f.write("\n## 2. Mức cải thiện của IA-MADDPG+UAV so với từng baseline\n\n")
         f.write("| So với | Δ Reward | Δ TSR | Δ Throughput | Δ Energy Eff. |\n")
@@ -99,9 +99,8 @@ def main() -> None:
                 f"IA-MADDPG+UAV = {p['avg_tsr']:.3f}, throughput = "
                 f"{p['avg_throughput']:.3f} bits/s/Hz.\n")
         mc = p.get("mode_counts", [0, 0, 0])
-        total = max(sum(mc), 1)
         f.write(f"- **Phân bố chế độ truyền:** Agent chủ động dùng UAV relay "
-                f"{mc[2]/total*100:.0f}% thời lượng — bằng chứng cho lợi ích của UAV.\n")
+                f"{mc[2]*100:.0f}% thời lượng — bằng chứng cho lợi ích của UAV.\n")
         f.write(f"- **Hiệu quả năng lượng (Throughput/Joule):** "
                 f"{p['energy_efficiency']:.4f}; phương pháp cũ không học "
                 f"không cân nhắc cost UAV.\n")
