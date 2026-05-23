@@ -1,0 +1,68 @@
+% Chapter 5 — Auto-generated results section
+\section{So sánh các phương pháp}
+\begin{table}[!htbp]
+\centering
+\caption{So sánh hiệu năng IA-MADDPG+UAV với các baselines.}
+\label{tab:methods-compare}
+\begin{tabular}{l c c c c}
+\hline
+\textbf{Phương pháp} & \textbf{Phần thưởng} & \textbf{TSR} & \textbf{Thông lượng} & \textbf{Hiệu quả NL} \\
+\hline
+IA-MADDPG (UAV-relay) & -0.474 $\pm$ 0.013 & 0.000 $\pm$ 0.000 & 0.007 & 0.000 \\
+IA-MADDPG (chỉ RBS) & -0.465 $\pm$ 0.019 & 0.000 $\pm$ 0.000 & 0.015 & 15259.239 \\
+MADDPG tiêu chuẩn & -0.453 $\pm$ 0.023 & 0.000 $\pm$ 0.001 & 0.011 & 0.000 \\
+Tham lam (Greedy) & -0.451 $\pm$ 0.032 & 0.000 $\pm$ 0.002 & 0.027 & 27386.615 \\
+Nhảy tần ngẫu nhiên (FH) & -0.388 $\pm$ 0.003 & 0.000 $\pm$ 0.000 & 0.003 & 2608.837 \\
+Truyền trực tiếp (DT) & -0.383 $\pm$ 0.002 & 0.000 $\pm$ 0.000 & 0.001 & 1479.519 \\
+\hline
+\end{tabular}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/training_curves.png}
+\caption{Đường cong phần thưởng huấn luyện.}
+\label{fig:training_curves}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/convergence_tsr.png}
+\caption{Tốc độ hội tụ của tỷ lệ truyền thành công (TSR).}
+\label{fig:convergence_tsr}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/throughput_comparison.png}
+\caption{So sánh thông lượng trung bình.}
+\label{fig:throughput_comparison}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/mode_distribution.png}
+\caption{Phân bố chế độ truyền (D2D/RBS/UAV).}
+\label{fig:mode_distribution}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/tsr_vs_threshold.png}
+\caption{TSR theo ngưỡng SINR.}
+\label{fig:tsr_vs_threshold}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/uav_trajectory.png}
+\caption{Quỹ đạo UAV của IA-MADDPG+UAV.}
+\label{fig:uav_trajectory}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.78\linewidth]{figures/energy_efficiency.png}
+\caption{Hiệu quả năng lượng các phương pháp.}
+\label{fig:energy_efficiency}
+\end{figure}

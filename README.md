@@ -1,6 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 https://drive.google.com/drive/folders/1q4FjgIlwDW4TpfvQb8L4CTGVNrg3Gtk5?usp=drive_link
 =======
+=======
+>>>>>>> cd983a986e6992fffce46132bec8e2a4e0b342b8
 Graduate Together — UAV-assisted Ambient Backscatter Anti-Jamming
 
 Overview
@@ -58,5 +61,9 @@ Notes
 - Adjust hyperparameters in src/config.py (episodes, steps_per_episode, N, K, etc.).
 - If a requirements.txt file is moved, update the install path accordingly.
 
+<<<<<<< HEAD
 If you want this README tuned (add badges, examples, or CI), tell me which details to include.
 >>>>>>> 5baa267 (feat: update reports)
+=======
+If you want this README tuned (add badges, examples, or CI), tell me which details to include.
+>>>>>>> cd983a986e6992fffce46132bec8e2a4e0b342b8
